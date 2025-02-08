@@ -4,66 +4,66 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+
+import com.revrobotics.spark.config.SparkMaxConfig;
+
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+
+import com.revrobotics.spark.ClosedLoopSlot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-
-import java.io.ObjectInputFilter.Config;
-
-import javax.xml.crypto.dsig.keyinfo.KeyValue;
-import com.revrobotics.spark.ClosedLoopSlot;
-
-import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.config.SparkMaxConfig;
-
 public class ElevatorSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
-SparkFlex m_motor = new SparkFlex(0, MotorType.kBrushless);
+SparkMax motor0 = new SparkMax(10, MotorType.kBrushless);
+SparkMax motor1 = new SparkMax(11, MotorType.kBrushless);
   // Initialize the closed loop controller
-SparkClosedLoopController m_controller = m_motor.getClosedLoopController();
+SparkClosedLoopController controller1 = motor0.getClosedLoopController();
+SparkClosedLoopController controller2 = motor1.getClosedLoopController();
 
   /** Creates a new Subsystem. */
-  public ElevatorSubsystem() {}
+  public ElevatorSubsystem() 
+  {
+    
+    SparkMaxConfig config0 = new SparkMaxConfig();
+    config0.closedLoop
+    // Set PID gains for position control in slot 0.
+    // We don't have to pass a slot number since the default is slot 0.
+    .p(0)
+    .i(0)
+    .d(0)
+    .outputRange(0, 5000);
+    
+    SparkMaxConfig config1 = new SparkMaxConfig();
+    config1.apply(config0).inverted(true);
+    // Apply configs - reset old parameters, and persist through power-cycles. 
+    motor0.configure(config0, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    motor1.configure(config1, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  }
 
   /**
-   * Example command factory method.
+   * Sets motor controllers to run-to-pos based off distance
    *
    * @return a command
    */
-  public Command ElevatorCommand() {
+  public Command ElevatorCommand(double position_meters) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.
     return run(
         () -> {
-          m_controller.setReference(0, ControlType.kPosition);
-          SparkFlexConfig config = new SparkFlexConfig();
+          controller1.setReference(position_meters, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+          controller2.setReference(position_meters, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+
         });
   }
 
   public void toPos(){
-    m_controller.setReference(0, ControlType.kPosition);
-    SparkFlexConfig config = new SparkFlexConfig();
     
-    config.closedLoop
-      .p(0)
-      .d(0)
-      .outputRange(0, 0.5);
-
-    SparkMaxConfig config_2 = new SparkMaxConfig();
-    config_2.closedLoop.velocityFF(1/917);
-
-    SparkMaxConfig config_3 = new SparkMaxConfig();
-   // Set MAXMotion parameters
-  config_3.closedLoop.maxMotion
-    .maxVelocity(1)
-    .maxAcceleration(1)
-    .allowedClosedLoopError(0.5);
 
   }
   /**
