@@ -18,32 +18,30 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class ElevatorSubsystem extends SubsystemBase {
+public class ArmSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
-SparkMax motor0 = new SparkMax(10, MotorType.kBrushless);
-SparkMax motor1 = new SparkMax(11, MotorType.kBrushless);
+SparkMax motor2 = new SparkMax(10, MotorType.kBrushless);
+
   // Initialize the closed loop controller
-SparkClosedLoopController controller0 = motor0.getClosedLoopController();
-SparkClosedLoopController controller1 = motor1.getClosedLoopController();
+SparkClosedLoopController controller2 = motor2.getClosedLoopController();
+
 
   /** Creates a new Subsystem. */
-  public ElevatorSubsystem() 
+  public ArmSubsystem() 
   {
     
-    SparkMaxConfig config0 = new SparkMaxConfig();
-    config0.closedLoop
+    SparkMaxConfig config2 = new SparkMaxConfig();
+    config2.closedLoop
     // Set PID gains for position control in slot 0.
     // We don't have to pass a slot number since the default is slot 0.
     .p(0)
     .i(0)
     .d(0)
     .outputRange(0, 5000);
-    
-    SparkMaxConfig config1 = new SparkMaxConfig();
-    config1.apply(config0).inverted(true);
+
     // Apply configs - reset old parameters, and persist through power-cycles. 
-    motor0.configure(config0, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    motor1.configure(config1, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    motor2.configure(config2, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
   }
 
   /**
@@ -51,13 +49,12 @@ SparkClosedLoopController controller1 = motor1.getClosedLoopController();
    *
    * @return a command
    */
-  public Command ElevatorCommand(double position_meters) {
+  public Command ArmCommand(double position_degrees) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.
     return run(
         () -> {
-          controller0.setReference(position_meters, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-          controller1.setReference(position_meters, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+          controller2.setReference(position_degrees, ControlType.kPosition, ClosedLoopSlot.kSlot0);
 
         });
   }
