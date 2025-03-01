@@ -5,7 +5,6 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
@@ -14,35 +13,24 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
-import com.revrobotics.spark.ClosedLoopSlot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class ArmSubsystem extends SubsystemBase {
+public class ClawSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
-SparkMax motor2 = new SparkMax(12, MotorType.kBrushless);
-
-
-  // Initialize the closed loop controller
-SparkClosedLoopController controller2 = motor2.getClosedLoopController();
+SparkMax motor3 = new SparkMax(13, MotorType.kBrushless);
 
 
   /** Creates a new Subsystem. */
-  public ArmSubsystem() 
+  public ClawSubsystem() 
   {
     
-    SparkMaxConfig config2 = new SparkMaxConfig();
-    config2.closedLoop
-    // Set PID gains for position control in slot 0.
-    // We don't have to pass a slot number since the default is slot 0.
-    .p(0.04)
-    .i(0)
-    .d(0)
-    .outputRange(-1, 1);
-    config2.inverted(true);
+    SparkMaxConfig config3 = new SparkMaxConfig();
+    config3
+    .inverted(false);
 
     // Apply configs - reset old parameters, and persist through power-cycles. 
-    motor2.configure(config2, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    motor3.configure(config3, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
   }
 
@@ -51,30 +39,26 @@ SparkClosedLoopController controller2 = motor2.getClosedLoopController();
    *
    * @return a command
    */
-  public Command ArmCommand(double position) {
+  public Command ClawCommand(double speed) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.
     return run(
         () -> {
-          toPos(position);
+          runClaw(speed);
         });
   }
 
-  public void toPos(double rotations)
+  public void runClaw(double speed)
   {
-    controller2.setReference(rotations, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+    motor3.set(speed);
   }
 
-  public void armPickup()
-  {
-    toPos(0);
-  }
   /**
    * An example method querying a boolean state of the subsystem (for example, a digital sensor).
    *
    * @return value of some boolean subsystem state, such as a digital sensor.
    */
-  public boolean armCondition() {
+  public boolean ClawCondition() {
     // Query some boolean state, such as a digital sensor.
     return false;
   }

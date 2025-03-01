@@ -14,10 +14,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
+import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 public class RobotContainer {
@@ -34,20 +36,37 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController joystick = new CommandXboxController(0);
+    private final CommandXboxController operationsController = new CommandXboxController(1);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public final ElevatorSubsystem elevator = new ElevatorSubsystem();
+    public final ArmSubsystem arm = new ArmSubsystem();
+    public final ClawSubsystem claw = new ClawSubsystem();
+
+    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(0).withTimeout(0.3), new ParallelCommandGroup(arm.ArmCommand(0), elevator.ElevatorCommand(0.5), claw.ClawCommand(0.4)));
 
     public RobotContainer() {
         configureBindings();
     }
 
     private void configureBindings() {
-        elevator.setDefaultCommand(elevator.ElevatorCommand(0));
-        joystick.rightBumper().whileTrue(elevator.ElevatorCommand(10));
-        joystick.rightTrigger(0.5).whileTrue(elevator.ElevatorCommand(0));
+        elevator.setDefaultCommand(elevator.ElevatorCommand(4));
+        arm.setDefaultCommand(arm.ArmCommand(3));
+        claw.setDefaultCommand(claw.ClawCommand(0));
 
+        operationsController.y().whileTrue(elevator.ElevatorCommand(40));
+        operationsController.b().whileTrue(elevator.ElevatorCommand(20));
+        operationsController.a().whileTrue(pickupCommand);
+
+        operationsController
+            .povUp()
+            .whileTrue(
+                new ParallelCommandGroup(
+                    elevator.ElevatorCommand(40), 
+                    arm.ArmCommand(19)));
+
+        operationsController.rightTrigger().onTrue(claw.ClawCommand(-0.3));
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -57,6 +76,7 @@ public class RobotContainer {
             )
         );
 
+        
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         joystick.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))

@@ -28,19 +28,20 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
   {
   
     motor0.getEncoder().setPosition(0);
-    motor0.getEncoder().setPosition(0);
+    motor1.getEncoder().setPosition(0);
     SparkMaxConfig config0 = new SparkMaxConfig();
-    config0.closedLoop
+    config0.inverted(true).closedLoop
     // Set PID gains for position control in slot 0.
     // We don't have to pass a slot number since the default is slot 0.
-    .p(10)
+    .p(0.2)
     .i(0)
     .d(0)
-    .outputRange(-1, 1);
+    .outputRange(-1, 1)
+    .positionWrappingEnabled(false);
     config0.closedLoop.maxMotion
-    .maxVelocity(1800)
-    .maxAcceleration(6000)
-    .allowedClosedLoopError(1);
+    .maxVelocity(1000)
+    .maxAcceleration(2000)
+    .allowedClosedLoopError(0);
 
     // Create follower controller
     // Ensures to invert it
@@ -56,18 +57,38 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
    *
    * @return a command
    */
-  public Command ElevatorCommand(double position_meters) {
+  public Command ElevatorCommand(double position_rotations) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.
     return run(
         () -> {
-          controller0.setReference(position_meters*30, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0);
+          toPos(position_rotations);
         });
   }
 
-  public void toPos(){
-    
+  public void ElevatorPickup()
+  {
+    toPos(1);
+  }
 
+  public void ElevatorReady()
+  {
+    toPos(4);
+  }
+
+  public void ElevatorMid()
+  {
+    toPos(39);
+  }
+
+  public void ElevatorMax()
+  {
+    toPos(40);
+  }
+
+  public void toPos(double rotations)
+  {
+    controller0.setReference(rotations, ControlType.kPosition, ClosedLoopSlot.kSlot0);
   }
   /**
    * An example method querying a boolean state of the subsystem (for example, a digital sensor).
@@ -81,8 +102,6 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
 
   @Override
   public void periodic() { 
-    System.out.println(motor0.getEncoder().getPosition());
-    System.out.println(motor1.getEncoder().getPosition());
     // This method will be called once per scheduler run
   }
 
