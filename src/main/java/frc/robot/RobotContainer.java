@@ -61,6 +61,7 @@ public class RobotContainer {
         operationsController.y().whileTrue(elevator.ElevatorCommand(40));
         operationsController.b().whileTrue(elevator.ElevatorCommand(20));
         operationsController.a().whileTrue(pickupCommand);
+        operationsController.x().whileTrue(arm.ArmCommand(10));
 
         operationsController
             .povUp()
@@ -73,16 +74,16 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(joystick.getLeftX() * MaxSpeed)
-                    .withVelocityY(-joystick.getLeftY() * MaxSpeed)
+                drive.withVelocityX(joystick.getLeftY() * MaxSpeed)
+                    .withVelocityY(joystick.getLeftX() * MaxSpeed)
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
         joystick.x().whileTrue(
             drivetrain.applyRequest(() ->
-                driveRobotCentric.withVelocityX(joystick.getLeftX() * MaxSpeed)
-                    .withVelocityY(joystick.getLeftY() * MaxSpeed)
+                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed)
+                    .withVelocityY(joystick.getLeftX() * MaxSpeed)
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
     ));
 

@@ -12,6 +12,8 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -20,6 +22,8 @@ public class ElevatorSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
 SparkMax motor0 = new SparkMax(10, MotorType.kBrushless);
 SparkMax motor1 = new SparkMax(11, MotorType.kBrushless);
+PIDController elevaPidController = new PIDController(0, 0, 0);
+ElevatorFeedforward feedforward = new ElevatorFeedforward(0, 0.5, 0.0005);
   // Initialize the closed loop controller
 SparkClosedLoopController controller0 = motor0.getClosedLoopController();
 
@@ -30,17 +34,19 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
     motor0.getEncoder().setPosition(0);
     motor1.getEncoder().setPosition(0);
     SparkMaxConfig config0 = new SparkMaxConfig();
-    config0.inverted(true).closedLoop
+    config0
+    .inverted(true)
+    .closedLoop
     // Set PID gains for position control in slot 0.
     // We don't have to pass a slot number since the default is slot 0.
-    .p(0.2)
+    .p(0)
     .i(0)
     .d(0)
-    .outputRange(-1, 1)
+    .outputRange(-0.5, 1)
     .positionWrappingEnabled(false);
     config0.closedLoop.maxMotion
-    .maxVelocity(1000)
-    .maxAcceleration(2000)
+    .maxVelocity(4800)
+    .maxAcceleration(2400)
     .allowedClosedLoopError(0);
 
     // Create follower controller
@@ -88,7 +94,7 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
 
   public void toPos(double rotations)
   {
-    controller0.setReference(rotations, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+    controller0.setReference(rotations, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0, feedforward.calculate(controller0.));
   }
   /**
    * An example method querying a boolean state of the subsystem (for example, a digital sensor).

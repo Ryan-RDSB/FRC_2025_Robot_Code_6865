@@ -38,7 +38,7 @@ SparkClosedLoopController controller2 = motor2.getClosedLoopController();
     .p(0.04)
     .i(0)
     .d(0)
-    .outputRange(-1, 1);
+    .outputRange(-0.1, 1);
     config2.inverted(true);
 
     // Apply configs - reset old parameters, and persist through power-cycles. 
