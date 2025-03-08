@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
+import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -48,6 +49,7 @@ public class RobotContainer {
     public final ElevatorSubsystem elevator = new ElevatorSubsystem();
     public final ArmSubsystem arm = new ArmSubsystem();
     public final ClawSubsystem claw = new ClawSubsystem();
+    public final ClimbSubsystem climb = new ClimbSubsystem();
 
     public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(0).withTimeout(0.3), new ParallelCommandGroup(arm.ArmCommand(0), elevator.ElevatorCommand(0.5), claw.ClawCommand(0.4)));
 
@@ -59,6 +61,12 @@ public class RobotContainer {
         elevator.setDefaultCommand(elevator.ElevatorCommand(2));
         arm.setDefaultCommand(arm.ArmCommand(3));
         claw.setDefaultCommand(claw.ClawCommand(0));
+        
+        climb.setDefaultCommand(climb.ClimbCommand(0));
+
+        joystick.x().whileTrue(climb.ClimbCommand(0.5));
+        joystick.a().whileTrue(climb.ClimbCommand(-0.5));
+
 
 
         // Lvl 1 scoring
