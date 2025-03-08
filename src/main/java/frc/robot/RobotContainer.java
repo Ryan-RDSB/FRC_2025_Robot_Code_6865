@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -19,6 +20,7 @@ import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
 
@@ -58,13 +60,40 @@ public class RobotContainer {
         arm.setDefaultCommand(arm.ArmCommand(3));
         claw.setDefaultCommand(claw.ClawCommand(0));
 
-        operationsController.y().onTrue(elevator.ElevatorCommand(40));
-        operationsController.b().onTrue(elevator.ElevatorCommand(10));
-        operationsController.a().onTrue(pickupCommand);
-        operationsController.x().onTrue(elevator.ElevatorCommand(2));
 
-        operationsController.
+        // Lvl 1 scoring
+        operationsController.y().onTrue(
+            new ParallelCommandGroup(
+                elevator.ElevatorCommand(30),
+                arm.ArmCommand(5)
+                )
+            );
 
+        // Lvl 2 scoring
+        operationsController.b().onTrue(
+            new ParallelCommandGroup(
+                elevator.ElevatorCommand(20),
+                arm.ArmCommand(10)
+                )
+            );
+
+        // Lvl 3 scoring
+        operationsController.x().onTrue(
+            new ParallelCommandGroup(
+                elevator.ElevatorCommand(40),
+                arm.ArmCommand(10)
+                )
+            );
+
+        // Lvl 4 scoring
+        operationsController.a().onTrue(
+            new ParallelCommandGroup(
+                elevator.ElevatorCommand(40),
+                arm.ArmCommand(15)
+                )
+            );
+        // Intake
+        operationsController.leftBumper().onTrue(pickupCommand);
         operationsController
             .povUp()
             .whileTrue(
