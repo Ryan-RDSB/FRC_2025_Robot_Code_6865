@@ -12,19 +12,23 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
-SparkMax motor0 = new SparkMax(10, MotorType.kBrushless);
-SparkMax motor1 = new SparkMax(11, MotorType.kBrushless);
-ProfiledPIDController elevatorPidController = new ProfiledPIDController(0, 0, 0, new TrapezoidProfile.Constraints(0.3,0.3));
-ElevatorFeedforward feedforward = new ElevatorFeedforward(0, 0.00001, 0);
+SparkMax motor0 = new SparkMax(11, MotorType.kBrushless);
+SparkMax motor1 = new SparkMax(10, MotorType.kBrushless);
+RelativeEncoder encoder = motor0.getEncoder();
+ProfiledPIDController elevatorPidController = new ProfiledPIDController(4, 0, 0, new TrapezoidProfile.Constraints(10,20));
+ElevatorFeedforward feedforward = new ElevatorFeedforward(0,
+//0.5, 
+//0.5);
+0,0);
 
   // Initialize the closed loop controller
 SparkClosedLoopController controller0 = motor0.getClosedLoopController();
@@ -37,7 +41,7 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
     motor1.getEncoder().setPosition(0);
     SparkMaxConfig config0 = new SparkMaxConfig();
     config0
-    .inverted(true)
+    .inverted(false)
     /* .closedLoop
     // Set PID gains for position control in slot 0.
     // We don't have to pass a slot number since the default is slot 0.
@@ -98,11 +102,6 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
   {
     //controller0.setReference(rotations, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0, feedforward.calculate(controller0.));
     elevatorPidController.setGoal(rotations);
-    motor0.setVoltage(
-      elevatorPidController.calculate(
-        motor0.getEncoder().getPosition()) 
-        + feedforward.calculate(elevatorPidController.getSetpoint().velocity)
-        );
   }
   /**
    * An example method querying a boolean state of the subsystem (for example, a digital sensor).
@@ -116,11 +115,23 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
 
   @Override
   public void periodic() { 
+
+    double pidValue = elevatorPidController.calculate(
+      encoder.getPosition());
+    double ffValue = feedforward.calculate(elevatorPidController.getSetpoint().velocity);
+
+    System.out.println("encoderPos: " + encoder.getPosition());
+
+    System.out.println("PIDvelocity: " + elevatorPidController.getSetpoint().velocity);
+    System.out.println("ff: " + ffValue);
+    System.out.println("PID: " + pidValue);
+    System.out.println("volts: " + (ffValue + pidValue));
     // This method will be called once per scheduler run
+    motor0.setVoltage(ffValue + pidValue);
   }
 
   @Override
   public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
+    // This method will be called once per schedu1er run during simulation
   }
 }

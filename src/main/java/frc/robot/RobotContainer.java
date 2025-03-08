@@ -54,12 +54,12 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        elevator.setDefaultCommand(elevator.ElevatorCommand(4));
+        elevator.setDefaultCommand(elevator.ElevatorCommand(2));
         arm.setDefaultCommand(arm.ArmCommand(3));
         claw.setDefaultCommand(claw.ClawCommand(0));
 
         operationsController.y().whileTrue(elevator.ElevatorCommand(40));
-        operationsController.b().whileTrue(elevator.ElevatorCommand(20));
+        operationsController.b().whileTrue(elevator.ElevatorCommand(10));
         operationsController.a().whileTrue(pickupCommand);
         operationsController.x().whileTrue(arm.ArmCommand(10));
 
