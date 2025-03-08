@@ -58,10 +58,12 @@ public class RobotContainer {
         arm.setDefaultCommand(arm.ArmCommand(3));
         claw.setDefaultCommand(claw.ClawCommand(0));
 
-        operationsController.y().whileTrue(elevator.ElevatorCommand(40));
-        operationsController.b().whileTrue(elevator.ElevatorCommand(10));
-        operationsController.a().whileTrue(pickupCommand);
-        operationsController.x().whileTrue(arm.ArmCommand(10));
+        operationsController.y().onTrue(elevator.ElevatorCommand(40));
+        operationsController.b().onTrue(elevator.ElevatorCommand(10));
+        operationsController.a().onTrue(pickupCommand);
+        operationsController.x().onTrue(elevator.ElevatorCommand(2));
+
+        operationsController.
 
         operationsController
             .povUp()
@@ -70,7 +72,7 @@ public class RobotContainer {
                     elevator.ElevatorCommand(40), 
                     arm.ArmCommand(19)));
 
-        operationsController.rightTrigger().onTrue(claw.ClawCommand(-0.3));
+        operationsController.rightTrigger().whileTrue(claw.ClawCommand(-0.3));
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
