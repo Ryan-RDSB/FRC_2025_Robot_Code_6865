@@ -132,6 +132,18 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
     ));
 
+    operationsController.a().whileFalse(
+        operationsController.b().whileFalse(
+            operationsController.x().whileFalse(
+                operationsController.y().whileFalse(
+                    new ParallelCommandGroup(
+                        elevator.ElevatorCommand(2),
+                        arm.ArmCommand(3)
+                    )
+                )
+            )
+        )
+    );
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         joystick.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
