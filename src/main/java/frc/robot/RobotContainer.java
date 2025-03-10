@@ -70,7 +70,7 @@ public class RobotContainer {
 
 
         // Lvl 1 scoring
-        operationsController.y().onTrue(
+        operationsController.y().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(30),
                 arm.ArmCommand(5)
@@ -78,7 +78,7 @@ public class RobotContainer {
             );
 
         // Lvl 2 scoring
-        operationsController.b().onTrue(
+        operationsController.b().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(20),
                 arm.ArmCommand(10)
@@ -86,7 +86,7 @@ public class RobotContainer {
             );
 
         // Lvl 3 scoring
-        operationsController.x().onTrue(
+        operationsController.x().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
                 arm.ArmCommand(10)
@@ -94,14 +94,20 @@ public class RobotContainer {
             );
 
         // Lvl 4 scoring
-        operationsController.a().onTrue(
+        operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
                 arm.ArmCommand(15)
                 )
             );
+        operationsController.leftBumper().whileTrue(
+            new ParallelCommandGroup(
+                elevator.ElevatorCommand(0),
+                arm.ArmCommand(0)
+            )
+        );
         // Intake
-        operationsController.leftBumper().onTrue(pickupCommand);
+        operationsController.leftTrigger().whileTrue(pickupCommand);
         operationsController
             .povUp()
             .whileTrue(
@@ -119,7 +125,7 @@ public class RobotContainer {
             )
         );
 
-        joystick.x().whileTrue(
+        joystick.leftBumper().whileTrue(
             drivetrain.applyRequest(() ->
                 driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed)
                     .withVelocityY(joystick.getLeftX() * MaxSpeed)
