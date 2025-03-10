@@ -97,7 +97,7 @@ public class RobotContainer {
         operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(15)
+                arm.ArmCommand(70)
                 )
             );
         operationsController.leftBumper().onTrue(
