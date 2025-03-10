@@ -100,14 +100,14 @@ public class RobotContainer {
                 arm.ArmCommand(15)
                 )
             );
-        operationsController.leftBumper().whileTrue(
+        operationsController.leftBumper().onTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(0),
                 arm.ArmCommand(0)
             )
         );
         // Intake
-        operationsController.leftTrigger().whileTrue(pickupCommand);
+        operationsController.leftTrigger().onTrue(pickupCommand);
         operationsController
             .povUp()
             .whileTrue(
