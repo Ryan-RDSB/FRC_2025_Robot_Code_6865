@@ -89,7 +89,7 @@ public class RobotContainer {
         operationsController.x().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(14)
+                arm.ArmCommand(17)
                 )
             );
 
