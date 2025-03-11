@@ -81,14 +81,14 @@ public class RobotContainer {
         operationsController.b().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(20),
-                arm.ArmCommand(12)
+                arm.ArmCommand(15)
                 )
             );
 
         // Lvl 3 scoring
         operationsController.x().whileTrue(
             new ParallelCommandGroup(
-                elevator.ElevatorCommand(30),
+                elevator.ElevatorCommand(35),
                 arm.ArmCommand(20)
                 )
             );
@@ -97,7 +97,7 @@ public class RobotContainer {
         operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(17)
+                arm.ArmCommand(19)
                 )
             );
         // Reset Arm and Elevator
