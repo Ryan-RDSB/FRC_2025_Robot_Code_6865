@@ -97,7 +97,7 @@ public class RobotContainer {
         operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(19)
+                arm.ArmCommand(23)
                 )
             );
         // Reset Arm and Elevator
