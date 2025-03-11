@@ -101,7 +101,7 @@ public class RobotContainer {
                 )
             );
         // Reset Arm and Elevator
-    operationsController.leftBumper().onTrue(
+    operationsController.leftBumper().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(0),
                 arm.ArmCommand(0)
