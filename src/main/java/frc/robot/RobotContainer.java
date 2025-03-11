@@ -81,7 +81,7 @@ public class RobotContainer {
         operationsController.b().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(20),
-                arm.ArmCommand(10)
+                arm.ArmCommand(12)
                 )
             );
 
@@ -89,7 +89,7 @@ public class RobotContainer {
         operationsController.x().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(10)
+                arm.ArmCommand(14)
                 )
             );
 
@@ -97,15 +97,17 @@ public class RobotContainer {
         operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(15)
+                arm.ArmCommand(18)
                 )
             );
-        operationsController.leftBumper().onTrue(
+        // Reset Arm and Elevator
+    operationsController.leftBumper().onTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(0),
                 arm.ArmCommand(0)
             )
         );
+
         // Intake
         operationsController.leftTrigger().onTrue(pickupCommand);
         operationsController

@@ -10,7 +10,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
-
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
@@ -35,11 +35,12 @@ SparkClosedLoopController controller2 = motor2.getClosedLoopController();
     config2.closedLoop
     // Set PID gains for position control in slot 0.
     // We don't have to pass a slot number since the default is slot 0.
-    .p(0.04)
+    .p(0.05)
     .i(0)
     .d(0)
     .outputRange(-0.1, 1);
-    config2.inverted(true);
+    config2.inverted(true).idleMode(IdleMode.kBrake);
+  
 
     // Apply configs - reset old parameters, and persist through power-cycles. 
     motor2.configure(config2, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
