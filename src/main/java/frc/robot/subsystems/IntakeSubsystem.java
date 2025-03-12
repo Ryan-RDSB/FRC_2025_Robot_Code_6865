@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+
+
 import au.grapplerobotics.ConfigurationFailedException;
 import au.grapplerobotics.LaserCan;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -11,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeSubsystem extends SubsystemBase {
   private LaserCan lc;
+
   /** Creates a new ExampleSubsystem. */
   public IntakeSubsystem() {
     lc = new LaserCan(0);
@@ -52,6 +55,17 @@ public class IntakeSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    int measurement = getLaserMeasurement();
+    boolean coralIn;
+    if (measurement > 35 & measurement < 45)
+    {
+      coralIn = true;
+    }
+    else
+    {
+      coralIn = false;
+    }
+    //System.out.println("Coral In: " + coralIn);
     // This method will be called once per scheduler run
   }
 

@@ -63,7 +63,7 @@ SparkClosedLoopController controller2 = motor2.getClosedLoopController();
 
   public void toPos(double rotations)
   {
-    controller2.setReference(rotations, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+    controller2.setReference(rotations, ControlType.kPosition, ClosedLoopSlot.kSlot0, 0.05);
   }
 
   public void armPickup()

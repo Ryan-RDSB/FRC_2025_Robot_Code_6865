@@ -24,7 +24,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 SparkMax motor0 = new SparkMax(11, MotorType.kBrushless);
 SparkMax motor1 = new SparkMax(10, MotorType.kBrushless);
 RelativeEncoder encoder = motor0.getEncoder();
-ProfiledPIDController elevatorPidController = new ProfiledPIDController(4, 0, 0.0001, new TrapezoidProfile.Constraints(35, 60));
+ProfiledPIDController elevatorPidController = new ProfiledPIDController(2/* 4 */, 0, 0/*0.0001 */, new TrapezoidProfile.Constraints(35, 60));
 ElevatorFeedforward feedforward = new ElevatorFeedforward(0, 0.5,0.22);
 
   // Initialize the closed loop controller
@@ -116,7 +116,7 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
     double pidValue = elevatorPidController.calculate(
       encoder.getPosition());
     double ffValue = feedforward.calculate(elevatorPidController.getSetpoint().velocity);
-
+ 
     System.out.println("encoderPos: " + encoder.getPosition());
 
     System.out.println("PIDvelocity: " + elevatorPidController.getSetpoint().velocity);

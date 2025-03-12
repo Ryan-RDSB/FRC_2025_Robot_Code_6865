@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -50,8 +52,9 @@ public class RobotContainer {
     public final ArmSubsystem arm = new ArmSubsystem();
     public final ClawSubsystem claw = new ClawSubsystem();
     public final ClimbSubsystem climb = new ClimbSubsystem();
+    public final IntakeSubsystem laser = new IntakeSubsystem();
 
-    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(0).withTimeout(0.3), new ParallelCommandGroup(arm.ArmCommand(0), elevator.ElevatorCommand(0.5), claw.ClawCommand(0.4)));
+    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(0).withTimeout(0.3), new ParallelCommandGroup(arm.ArmCommand(0), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
 
     public RobotContainer() {
         configureBindings();
@@ -68,6 +71,15 @@ public class RobotContainer {
         joystick.a().whileTrue(climb.ClimbCommand(-0.5));
 
 
+        operationsController.a().negate()
+        .and(operationsController.b().negate())
+        .and(operationsController.x().negate())
+        .and(operationsController.y().negate())
+        .and(operationsController.leftTrigger().negate())
+        .and(operationsController.rightTrigger().negate()).whileTrue(
+            new ParallelCommandGroup(
+                elevator.ElevatorCommand(2),
+                arm.ArmCommand(3)));
 
         // Lvl 1 scoring
         operationsController.y().whileTrue(
@@ -88,8 +100,8 @@ public class RobotContainer {
         // Lvl 3 scoring
         operationsController.x().whileTrue(
             new ParallelCommandGroup(
-                elevator.ElevatorCommand(12),
-                arm.ArmCommand(20)
+                elevator.ElevatorCommand(25),
+                arm.ArmCommand(15)
                 )
             );
 
@@ -97,7 +109,7 @@ public class RobotContainer {
         operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(23)
+                arm.ArmCommand(17)
                 )
             );
         // Reset Arm and Elevator
@@ -134,18 +146,6 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
     ));
 
-    operationsController.a().whileFalse(
-        operationsController.b().whileFalse(
-            operationsController.x().whileFalse(
-                operationsController.y().whileFalse(
-                    new ParallelCommandGroup(
-                        elevator.ElevatorCommand(2),
-                        arm.ArmCommand(3)
-                    )
-                )
-            )
-        )
-    );
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         joystick.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
