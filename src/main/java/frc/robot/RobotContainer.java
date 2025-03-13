@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
@@ -60,7 +61,8 @@ public class RobotContainer {
         configureBindings();
     }
 
-    private void configureBindings() {
+    private void configureBindings() 
+    {
         elevator.setDefaultCommand(elevator.ElevatorCommand(2));
         arm.setDefaultCommand(arm.ArmCommand(3));
         claw.setDefaultCommand(claw.ClawCommand(0));
@@ -70,6 +72,7 @@ public class RobotContainer {
         joystick.x().whileTrue(climb.ClimbCommand(0.5));
         joystick.a().whileTrue(climb.ClimbCommand(-0.5));
 
+        new Trigger(() -> laser.hasCoral()).whileTrue(pickupCommand);
 
         operationsController.a().negate()
         .and(operationsController.b().negate())
