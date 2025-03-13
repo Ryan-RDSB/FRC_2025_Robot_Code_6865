@@ -92,7 +92,7 @@ public class RobotContainer {
         // Lvl 2 scoring
         operationsController.b().whileTrue(
             new ParallelCommandGroup(
-                elevator.ElevatorCommand(20),
+                elevator.ElevatorCommand(15),
                 arm.ArmCommand(15)
                 )
             );
