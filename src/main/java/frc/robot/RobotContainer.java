@@ -88,7 +88,7 @@ public class RobotContainer {
         operationsController.y().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(30),
-                arm.ArmCommand(5)
+                arm.ArmCommand(5+operationsController.getLeftY())
                 )
             );
 
@@ -96,7 +96,7 @@ public class RobotContainer {
         operationsController.b().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(20),
-                arm.ArmCommand(15)
+                arm.ArmCommand(15+operationsController.getLeftY())
                 )
             );
 
@@ -104,7 +104,7 @@ public class RobotContainer {
         operationsController.x().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(25),
-                arm.ArmCommand(15)
+                arm.ArmCommand(15+operationsController.getLeftY())
                 )
             );
 
@@ -112,7 +112,7 @@ public class RobotContainer {
         operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(17)
+                arm.ArmCommand(17+operationsController.getLeftY())
                 )
             );
         // Reset Arm and Elevator
@@ -122,7 +122,7 @@ public class RobotContainer {
                 arm.ArmCommand(0)
             )
         );
-
+        
         // Intake
         operationsController.leftTrigger().whileTrue(pickupCommand);
         operationsController
@@ -153,6 +153,10 @@ public class RobotContainer {
         joystick.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
+        joystick.y().whileTrue(drivetrain.applyRequest(() ->
+        drive.withVelocityX(joystick.getLeftY() * MaxSpeed*0.4)
+            .withVelocityY(joystick.getLeftX() * MaxSpeed*0.4)
+            .withRotationalRate(-joystick.getRightX() * MaxAngularRate)));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
