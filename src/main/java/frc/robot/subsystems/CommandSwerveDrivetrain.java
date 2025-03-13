@@ -305,6 +305,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return run(() -> this.setControl(requestSupplier.get()));
     }
 
+    public Command resetGyro()
+    {
+        return runOnce(
+            () -> 
+            {
+                this.getPigeon2().setYaw(0);
+            }
+        );
+    }
+
     /**
      * Runs the SysId Quasistatic test in the given direction for the routine
      * specified by {@link #m_sysIdRoutineToApply}.
