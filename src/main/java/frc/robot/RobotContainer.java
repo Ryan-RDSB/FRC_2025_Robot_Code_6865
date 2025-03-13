@@ -109,7 +109,7 @@ public class RobotContainer {
         operationsController.a().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(20)
+                arm.ArmCommand(23)
                 )
             );
         // Reset Arm and Elevator
@@ -141,8 +141,8 @@ public class RobotContainer {
 
         joystick.leftBumper().whileTrue(
             drivetrain.applyRequest(() ->
-                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed)
-                    .withVelocityY(joystick.getLeftX() * MaxSpeed)
+                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed*0.1)
+                    .withVelocityY(joystick.getLeftX() * MaxSpeed*0.1)
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
     ));
 
