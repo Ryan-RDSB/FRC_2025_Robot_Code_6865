@@ -23,6 +23,8 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -30,6 +32,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -333,12 +336,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
          * Otherwise, only check and apply the operator perspective if the DS is disabled.
          * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
          */
-        /* 
+        
           boolean useMegaTag2 = true; //set to false to use MegaTag1
         boolean doRejectUpdate = false;
         if(useMegaTag2 == false)
         {
-            LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+            LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("forwardLimelight");
       
             if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1)
             {
@@ -366,7 +369,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
     else if (useMegaTag2 == true)
     {
-      LimelightHelpers.SetRobotOrientation("limelight", this.getRotation3d().toRotation2d().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelpers.SetRobotOrientation("limelight", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
       LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
       if(mt2.tagCount == 0)
       {
@@ -377,10 +380,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         this.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
         this.addVisionMeasurement(
             mt2.pose,
-            mt2.timestampSeconds);
+            Utils.fpgaToCurrentTime(mt2.timestampSeconds));
+            SmartDashboard.putNumber("LL Pose x: ", mt2.pose.getX());
+            SmartDashboard.putNumber("LL Pose y: ", mt2.pose.getY());
+            SmartDashboard.putNumber("Rotation: ", getState().Pose.getRotation().getDegrees());
       }
     } 
-*/      
+      
         if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
                 setOperatorPerspectiveForward(
@@ -391,6 +397,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+    
+    // Printing limelight output to SmartDashboard
+
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight-bottom");
+
+        double tx = table.getEntry("tx").getDouble(0);
+        SmartDashboard.putNumber("TX Value:", tx);
+        SmartDashboard.putNumber("Robot PoseX:", this.getState().Pose.getX());
+        SmartDashboard.putNumber("Robot PoseY:", this.getState().Pose.getY());
     }
 
     private void startSimThread() {
