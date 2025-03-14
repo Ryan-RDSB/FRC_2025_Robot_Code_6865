@@ -135,7 +135,7 @@ public class RobotContainer {
         operationsController.b().and(operationsController.rightTrigger().negate()).whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(2),
-                arm.ArmCommand(13)
+                arm.ArmCommand(14)
                 )
             );
 
@@ -194,6 +194,7 @@ public class RobotContainer {
             )
         );
 
+        // Field relative robot centric
         joystick.leftTrigger().and(joystick.leftBumper().negate())
         .whileTrue(
             drivetrain.applyRequest(
@@ -212,7 +213,9 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-        
+
+
+        // low speed robot cenctric
         joystick.leftBumper().and(joystick.leftTrigger()).whileTrue(
             drivetrain.applyRequest(
                 () ->
