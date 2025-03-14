@@ -135,7 +135,7 @@ public class RobotContainer {
         operationsController.b().and(operationsController.rightTrigger().negate()).whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(2),
-                arm.ArmCommand(14)
+                arm.ArmCommand(15)
                 )
             );
 
