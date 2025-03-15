@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -54,9 +55,10 @@ public class RobotContainer {
     public final ClawSubsystem claw = new ClawSubsystem();
     public final ClimbSubsystem climb = new ClimbSubsystem();
     public final IntakeSubsystem laser = new IntakeSubsystem();
+    public final LEDSubsystem candle = new LEDSubsystem();
 
     public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(0).withTimeout(0.3), new ParallelCommandGroup(arm.ArmCommand(0), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
-
+    
     public RobotContainer() {
         configureBindings();
     }
@@ -72,7 +74,7 @@ public class RobotContainer {
         joystick.x().whileTrue(climb.ClimbCommand(0.5));
         joystick.a().whileTrue(climb.ClimbCommand(-0.5));
 
-        new Trigger(() -> laser.hasCoral()).whileTrue(pickupCommand);
+        new Trigger(() -> laser.hasCoral()).whileTrue(new ParallelCommandGroup(pickupCommand, candle.LEDCommand("red")));
 
         operationsController.a().negate()
         .and(operationsController.b().negate())
