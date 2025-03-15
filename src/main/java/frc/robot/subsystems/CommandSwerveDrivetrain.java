@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
@@ -18,6 +19,7 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.Matrix;
@@ -25,6 +27,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -40,6 +43,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.LimelightHelpers;
+import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -52,9 +56,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private double m_lastSimTime;
     RobotConfig config;
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
-    private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.k180deg;
+    private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
     /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
-    private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.kZero;
+    private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
@@ -165,37 +169,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
   // Assuming this is a method in your drive subsystem
   
-  public Command followPathCommand(String pathName) 
-  {
-    try{
-        PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-
-        return new FollowPathCommand(
-                path,
-                () -> getState().Pose, // Robot pose supplier
-                () -> getState().Speeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-                (speeds, feedforwards) -> m_pathApplyRobotSpeeds.withSpeeds(speeds)
-                        .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-                        .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
-                , // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds, AND feedforwards
-                new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                        new PIDConstants(10.0, 0.0, 0.0), // Translation PID constants
-                        new PIDConstants(7.0, 0.0, 0.0) // Rotation PID constants
-                ),
-                config, // The robot configuration
-                  // Boolean supplier that controls when the path will be mirrored for the red alliance
-                  // This will flip the path being followed to the red side of the field.
-                  // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-                  () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-                this // Reference to this subsystem to set requirements
-        );
-    } catch (Exception e) {
-        DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none();
-    }
   
-}
     public CommandSwerveDrivetrain(
         SwerveDrivetrainConstants drivetrainConstants,
         double odometryUpdateFrequency,
@@ -243,7 +217,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         configureAutoBuilder();
-        this.getPigeon2().setYaw(0);
     }
 
     /**
@@ -293,6 +266,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("Rotation: ", getState().Pose.getRotation().getDegrees());
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -347,7 +321,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Utils.fpgaToCurrentTime(mt2.timestampSeconds));
             SmartDashboard.putNumber("LL Pose x: ", mt2.pose.getX());
             SmartDashboard.putNumber("LL Pose y: ", mt2.pose.getY());
-            SmartDashboard.putNumber("Rotation: ", getState().Pose.getRotation().getDegrees());
       }
     } 
       
@@ -361,6 +334,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             );
             m_hasAppliedOperatorPerspective = true;
         });
+        
     }
     
     // Printing limelight output to SmartDashboard
@@ -415,5 +389,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         } catch (Exception ex) {
             DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", ex.getStackTrace());
         }
+    }
+
+    public Command path_find_to(Pose2d pose, LinearVelocity endVelocity){
+        return AutoBuilder.pathfindToPose(pose, new PathConstraints(4.5, 3, 2*3.141592, 1.5*3.141592), endVelocity);
     }
 }

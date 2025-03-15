@@ -38,7 +38,7 @@ SparkClosedLoopController controller2 = motor2.getClosedLoopController();
     .p(0.05)
     .i(0)
     .d(0)
-    .outputRange(-0.2, 1);
+    .outputRange(-0.3, 1);
     config2.inverted(true).idleMode(IdleMode.kBrake);
   
 

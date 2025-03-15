@@ -60,7 +60,7 @@ public class RobotContainer {
 
     private final SendableChooser<Command> autoChooser;
 
-    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(-2).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-2), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
+    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(-4).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-4), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
     public final Command scoreLvl4Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
             arm.ArmCommand(15),
@@ -72,6 +72,7 @@ public class RobotContainer {
             claw.ClawCommand(-0.5)
             )
         );
+        
     public final Command scoreLvl3Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
             arm.ArmCommand(10),
