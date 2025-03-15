@@ -9,9 +9,14 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -22,7 +27,6 @@ import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -54,10 +58,48 @@ public class RobotContainer {
     public final ClimbSubsystem climb = new ClimbSubsystem();
     public final IntakeSubsystem laser = new IntakeSubsystem();
 
-    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(0).withTimeout(0.3), new ParallelCommandGroup(arm.ArmCommand(0), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
+    private final SendableChooser<Command> autoChooser;
+
+    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(-2).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-2), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
+    public final Command scoreLvl4Command = new SequentialCommandGroup(
+        new ParallelCommandGroup(
+            arm.ArmCommand(15),
+            elevator.ElevatorCommand(40)
+            ).withTimeout(0.5), 
+        new ParallelCommandGroup(
+            arm.ArmCommand(15),
+            elevator.ElevatorCommand(38),
+            claw.ClawCommand(-0.5)
+            )
+        );
+    public final Command scoreLvl3Command = new SequentialCommandGroup(
+        new ParallelCommandGroup(
+            arm.ArmCommand(10),
+            elevator.ElevatorCommand(25)
+            ).withTimeout(0.5), 
+        new ParallelCommandGroup(
+            arm.ArmCommand(10),
+            elevator.ElevatorCommand(25),
+            claw.ClawCommand(-0.5)
+            )
+        );
+
+    public final Command scoreLvl2Command = new SequentialCommandGroup(
+        new ParallelCommandGroup(
+            arm.ArmCommand(13),
+            elevator.ElevatorCommand(1)
+            ).withTimeout(0.5), 
+        new ParallelCommandGroup(
+            arm.ArmCommand(11),
+            elevator.ElevatorCommand(1),
+            claw.ClawCommand(-0.5)
+            )
+        );
 
     public RobotContainer() {
         configureBindings();
+        autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
     private void configureBindings() {
@@ -81,7 +123,7 @@ public class RobotContainer {
                 elevator.ElevatorCommand(2),
                 arm.ArmCommand(3)));
 
-        // Lvl 1 scoring
+        // Lvl 1 scoring position
         operationsController.y().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(30),
@@ -89,30 +131,30 @@ public class RobotContainer {
                 )
             );
 
-        // Lvl 2 scoring
-        operationsController.b().whileTrue(
+        // Lvl 2 scoring position
+        operationsController.b().and(operationsController.rightTrigger().negate()).whileTrue(
             new ParallelCommandGroup(
-                elevator.ElevatorCommand(20),
+                elevator.ElevatorCommand(2),
                 arm.ArmCommand(15)
                 )
             );
 
-        // Lvl 3 scoring
-        operationsController.x().whileTrue(
+        // Lvl 3 scoring position
+        operationsController.x().and(operationsController.rightTrigger().negate()).whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(25),
                 arm.ArmCommand(15)
                 )
             );
 
-        // Lvl 4 scoring
-        operationsController.a().whileTrue(
+        // Lvl 4 scoring position
+        operationsController.a().and(operationsController.rightTrigger().negate()).whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(40),
-                arm.ArmCommand(17)
+                arm.ArmCommand(18)
                 )
             );
-        // Reset Arm and Elevator
+        // Reset Arm and Elevator position
     operationsController.leftBumper().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(0),
@@ -129,7 +171,20 @@ public class RobotContainer {
                     elevator.ElevatorCommand(40), 
                     arm.ArmCommand(19)));
 
-        operationsController.rightTrigger().whileTrue(claw.ClawCommand(-0.3));
+        // release command
+        operationsController.rightTrigger()
+            .and(operationsController.x().negate())
+            .and(operationsController.a().negate())
+            .and(operationsController.b().negate())
+            .whileTrue(claw.ClawCommand(-0.5));
+
+        // Score lvl 4
+        operationsController.rightTrigger()
+        .and(operationsController.a()).whileTrue(scoreLvl4Command);
+
+        operationsController.rightTrigger()
+        .and(operationsController.x()).whileTrue(scoreLvl3Command);
+
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -139,24 +194,51 @@ public class RobotContainer {
             )
         );
 
-        joystick.leftBumper().whileTrue(
-            drivetrain.applyRequest(() ->
+        // Field relative robot centric
+        joystick.leftTrigger().and(joystick.leftBumper().negate())
+        .whileTrue(
+            drivetrain.applyRequest(
+                () ->
+                drive.withVelocityX(joystick.getLeftY() * MaxSpeed * 0.5)
+                .withVelocityY(joystick.getLeftX() * MaxSpeed * 0.5)
+                .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.5) // Drive counterclockwise with negative X (left)
+            )
+        );
+
+        joystick.leftBumper().and(joystick.leftTrigger().negate()).whileTrue(
+            drivetrain.applyRequest(
+                () ->
                 driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed)
                     .withVelocityY(joystick.getLeftX() * MaxSpeed)
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-    ));
+            )
+        );
+
+
+        // low speed robot cenctric
+        joystick.leftBumper().and(joystick.leftTrigger()).whileTrue(
+            drivetrain.applyRequest(
+                () ->
+                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed * 0.5)
+                    .withVelocityY(joystick.getLeftX() * MaxSpeed * 0.5)
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.5) // Drive counterclockwise with negative X (left)
+            )
+        );
 
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
+        /*joystick.b().whileTrue(drivetrain.applyRequest(() ->
+        point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
+        ));*/
+
+        joystick.b().onTrue(drivetrain.resetGyro());
+
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        //joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        //joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        //joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        //joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -165,6 +247,15 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+    try{
+        // Load the path you want to follow using its name in the GUI
+
+        // Create a path following command using AutoBuilder. This will also trigger event markers.
+        return autoChooser.getSelected();
+    } catch (Exception e) {
+        DriverStation.reportError("No Auto Selected: " + e.getMessage(), e.getStackTrace());
+        return Commands.none();
+    }
+    
     }
 }
