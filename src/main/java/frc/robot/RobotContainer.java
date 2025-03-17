@@ -14,6 +14,11 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -72,7 +77,7 @@ public class RobotContainer {
             claw.ClawCommand(-0.5)
             )
         );
-        
+
     public final Command scoreLvl3Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
             arm.ArmCommand(10),
@@ -206,6 +211,9 @@ public class RobotContainer {
             )
         );
 
+        // To barge-side Position
+        joystick.povDown().whileTrue(drivetrain.path_find_to(new Pose2d(1, 7, new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(-55))), LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+
         joystick.leftBumper().and(joystick.leftTrigger().negate()).whileTrue(
             drivetrain.applyRequest(
                 () ->
@@ -252,6 +260,7 @@ public class RobotContainer {
         // Load the path you want to follow using its name in the GUI
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
+        
         return autoChooser.getSelected();
     } catch (Exception e) {
         DriverStation.reportError("No Auto Selected: " + e.getMessage(), e.getStackTrace());
