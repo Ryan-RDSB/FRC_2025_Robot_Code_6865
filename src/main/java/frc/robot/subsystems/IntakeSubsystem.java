@@ -17,7 +17,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class IntakeSubsystem extends SubsystemBase {
   private LaserCan lc;
-
+  public boolean coralIn;
   /** Creates a new ExampleSubsystem. */
   public IntakeSubsystem() {
     lc = new LaserCan(0);
@@ -60,8 +60,8 @@ public class IntakeSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     int measurement = getLaserMeasurement();
-    boolean coralIn;
-    if (measurement > 35 & measurement < 45)
+    
+    if (measurement > 30 & measurement < 50)
     {
       coralIn = true;
     }

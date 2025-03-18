@@ -13,11 +13,11 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.LinearVelocityUnit;
 import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
@@ -80,7 +81,7 @@ public class RobotContainer {
             claw.ClawCommand(-0.5)
             )
         );
-        
+
     public final Command scoreLvl3Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
             arm.ArmCommand(10),
@@ -172,13 +173,7 @@ public class RobotContainer {
         );
 
         // Intake
-        operationsController.leftTrigger().whileTrue(pickupCommand);
-        operationsController
-            .povUp()
-            .whileTrue(
-                new ParallelCommandGroup(
-                    elevator.ElevatorCommand(40), 
-                    arm.ArmCommand(19)));
+
 
         // release command
         operationsController.rightTrigger()
@@ -214,6 +209,41 @@ public class RobotContainer {
             )
         );
 
+        // To barge-side pickup Position
+        joystick.povLeft().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(1, 7, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(-55))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+
+        // DS side reef
+        joystick.povDown().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(2.91, 4.03, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(0))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+        
+        // Far side reef 
+        joystick.povDown().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(6.06, 4.03, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(180))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+        joystick.povDownLeft().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(6.06, 4.03, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(-60))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+
+        // robot centric
         joystick.leftBumper().and(joystick.leftTrigger().negate()).whileTrue(
             drivetrain.applyRequest(
                 () ->
@@ -224,7 +254,7 @@ public class RobotContainer {
         );
 
 
-        // low speed robot cenctric
+        // low speed robot centric
         joystick.leftBumper().and(joystick.leftTrigger()).whileTrue(
             drivetrain.applyRequest(
                 () ->
@@ -264,7 +294,8 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-
+        new Trigger(() -> laser.coralIn).whileTrue(pickupCommand);
+        
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
@@ -273,6 +304,7 @@ public class RobotContainer {
         // Load the path you want to follow using its name in the GUI
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
+        
         return autoChooser.getSelected();
     } catch (Exception e) {
         DriverStation.reportError("No Auto Selected: " + e.getMessage(), e.getStackTrace());
