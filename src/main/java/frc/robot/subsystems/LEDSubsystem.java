@@ -14,22 +14,47 @@ import com.ctre.phoenix.led.CANdle.LEDStripType;
 public class LEDSubsystem extends SubsystemBase {
   CANdle candle = new CANdle(0); // makes a new candle with ID 0
   /** Creates a new LEDSubsystem. */
-  public LEDSubsystem() {}
+  public LEDSubsystem() 
+  {
+    CANdleConfiguration config = new CANdleConfiguration();
+    config.stripType = LEDStripType.RGB;
+    config.brightnessScalar = 0.5;
+    candle.configAllSettings(config);
+  }
 
   /**
    * Example command factory method.
    *
    * @return a command
    */
-  public Command LEDCommand() {
+  public Command LEDCommand(String color) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.
     return run(
         () -> {
-          CANdleConfiguration config = new CANdleConfiguration();
-          config.stripType = LEDStripType.RGB;
-          config.brightnessScalar = 0.5;
-          candle.configAllSettings(config);
+          switch (color){
+            case "red":
+             RED();
+              break;
+            case "green":
+             GREEN();
+              break;
+            case "blue":
+              BLUE();
+              break;
+            case "yellow":
+              YELLOW();
+              break;
+            case "purple":
+              PURPLE();
+              break;
+            case "orange":
+              ORANGE();
+              break;
+            default:
+              OFF();
+              break;
+          }
         });
   }
 
@@ -53,6 +78,9 @@ public class LEDSubsystem extends SubsystemBase {
     }
     public void ORANGE() {
       candle.setLEDs(255, 165, 0);
+    }
+    public void OFF() {
+      candle.setLEDs(255, 255, 255);
     }
   /*
    * An example method querying a boolean state of the subsystem (for example, a digital sensor).

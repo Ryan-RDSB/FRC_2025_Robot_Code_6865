@@ -13,7 +13,12 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.LinearVelocityUnit;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -30,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -58,9 +64,11 @@ public class RobotContainer {
     public final ClimbSubsystem climb = new ClimbSubsystem();
     public final IntakeSubsystem laser = new IntakeSubsystem();
 
+    public final LEDSubsystem led = new LEDSubsystem();
+
     private final SendableChooser<Command> autoChooser;
 
-    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(-4).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-4), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
+    public final Command pickupCommand = new ParallelCommandGroup(new SequentialCommandGroup(arm.ArmCommand(-4).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-4), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4))));
     public final Command scoreLvl4Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
             arm.ArmCommand(15),
@@ -232,6 +240,19 @@ public class RobotContainer {
         ));*/
 
         joystick.b().onTrue(drivetrain.resetGyro());
+
+        joystick.povUp().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(
+                    4.025,
+                    4,
+                    new Rotation2d(
+                        Units.degreesToRadians(90)
+                    )
+                ), 
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)
+            )
+        );
 
 
         // Run SysId routines when holding back/start and X/Y.
