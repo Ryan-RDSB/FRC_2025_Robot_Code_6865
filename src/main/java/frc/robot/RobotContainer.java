@@ -69,7 +69,7 @@ public class RobotContainer {
 
     private final SendableChooser<Command> autoChooser;
 
-    public final Command pickupCommand = new ParallelCommandGroup(new SequentialCommandGroup(arm.ArmCommand(-4).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-4), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4))));
+    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(-4).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-4), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
     public final Command scoreLvl4Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
             arm.ArmCommand(15),
@@ -118,6 +118,8 @@ public class RobotContainer {
         claw.setDefaultCommand(claw.ClawCommand(0));
         
         climb.setDefaultCommand(climb.ClimbCommand(0));
+
+        led.setDefaultCommand(led.LEDCommand("red"));
 
         joystick.x().whileTrue(climb.ClimbCommand(0.5));
         joystick.a().whileTrue(climb.ClimbCommand(-0.5));
@@ -294,7 +296,7 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        new Trigger(() -> laser.coralIn).whileTrue(pickupCommand);
+        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(pickupCommand, led.LEDCommand("green")));
         
         drivetrain.registerTelemetry(logger::telemeterize);
     }
