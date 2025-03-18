@@ -236,7 +236,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return runOnce(
             () -> 
             {
-                this.getPigeon2().setYaw(180);
+                this.seedFieldCentric();
             }
         );
     }

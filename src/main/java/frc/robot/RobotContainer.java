@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
@@ -169,13 +170,7 @@ public class RobotContainer {
         );
 
         // Intake
-        operationsController.leftTrigger().whileTrue(pickupCommand);
-        operationsController
-            .povUp()
-            .whileTrue(
-                new ParallelCommandGroup(
-                    elevator.ElevatorCommand(40), 
-                    arm.ArmCommand(19)));
+
 
         // release command
         operationsController.rightTrigger()
@@ -211,9 +206,41 @@ public class RobotContainer {
             )
         );
 
-        // To barge-side Position
-        joystick.povDown().whileTrue(drivetrain.path_find_to(new Pose2d(1, 7, new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(-55))), LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+        // To barge-side pickup Position
+        joystick.povLeft().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(1, 7, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(-55))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
 
+        // DS side reef
+        joystick.povDown().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(2.91, 4.03, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(0))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+        
+        // Far side reef 
+        joystick.povDown().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(6.06, 4.03, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(180))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+        joystick.povDownLeft().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(6.06, 4.03, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(-60))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+
+        // robot centric
         joystick.leftBumper().and(joystick.leftTrigger().negate()).whileTrue(
             drivetrain.applyRequest(
                 () ->
@@ -224,7 +251,7 @@ public class RobotContainer {
         );
 
 
-        // low speed robot cenctric
+        // low speed robot centric
         joystick.leftBumper().and(joystick.leftTrigger()).whileTrue(
             drivetrain.applyRequest(
                 () ->
@@ -251,7 +278,8 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-
+        new Trigger(() -> laser.coralIn).whileTrue(pickupCommand);
+        
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
