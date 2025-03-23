@@ -12,7 +12,7 @@ import com.ctre.phoenix.led.CANdleConfiguration;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
 
 public class LEDSubsystem extends SubsystemBase {
-  CANdle candle = new CANdle(0); // makes a new candle with ID 0
+  CANdle candle = new CANdle(4, "DriveCanivore"); // makes a new candle with ID 0
   /** Creates a new LEDSubsystem. */
   public LEDSubsystem() 
   {

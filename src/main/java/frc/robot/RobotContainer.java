@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -69,12 +70,41 @@ public class RobotContainer {
 
     private final SendableChooser<Command> autoChooser;
 
-    public final Command pickupCommand = new SequentialCommandGroup(arm.ArmCommand(-4).withTimeout(0.5), new ParallelCommandGroup(arm.ArmCommand(-4), elevator.ElevatorCommand(0.1), claw.ClawCommand(0.4)));
+    public final Command pickupCommand = new SequentialCommandGroup(
+        arm.ArmCommand(-4).withTimeout(0.5), 
+        new ParallelCommandGroup(arm.ArmCommand(-4), 
+            elevator.ElevatorCommand(0.1), 
+            claw.ClawCommand(0.4)
+            )
+        );
+    
+    // Upright positions
+    public final Command holdLvl4Command = new ParallelCommandGroup(
+        elevator.ElevatorCommand(40),
+        arm.ArmCommand(18)
+        );
+
+    public final Command holdLvl3Command = new ParallelCommandGroup(
+        elevator.ElevatorCommand(12),
+        arm.ArmCommand(16)
+        );
+
+    public final Command holdLvl2Command = new ParallelCommandGroup(
+        elevator.ElevatorCommand(3),
+        arm.ArmCommand(12)
+        );
+
+    public final Command holdLvl1Command = new ParallelCommandGroup(
+        elevator.ElevatorCommand(27),
+        arm.ArmCommand(6)
+        );
+    
+    // Scoring motions for upright
     public final Command scoreLvl4Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
             arm.ArmCommand(15),
             elevator.ElevatorCommand(40)
-            ).withTimeout(0.5), 
+            ).withTimeout(0.3), 
         new ParallelCommandGroup(
             arm.ArmCommand(15),
             elevator.ElevatorCommand(38),
@@ -84,11 +114,11 @@ public class RobotContainer {
 
     public final Command scoreLvl3Command = new SequentialCommandGroup(
         new ParallelCommandGroup(
-            arm.ArmCommand(10),
+            arm.ArmCommand(9),
             elevator.ElevatorCommand(25)
-            ).withTimeout(0.5), 
+            ).withTimeout(0.3), 
         new ParallelCommandGroup(
-            arm.ArmCommand(10),
+            arm.ArmCommand(9),
             elevator.ElevatorCommand(25),
             claw.ClawCommand(-0.5)
             )
@@ -98,7 +128,7 @@ public class RobotContainer {
         new ParallelCommandGroup(
             arm.ArmCommand(13),
             elevator.ElevatorCommand(1)
-            ).withTimeout(0.5), 
+            ).withTimeout(0.3), 
         new ParallelCommandGroup(
             arm.ArmCommand(11),
             elevator.ElevatorCommand(1),
@@ -106,112 +136,173 @@ public class RobotContainer {
             )
         );
 
+    public final Command scoreLvl1Command = new SequentialCommandGroup(
+        new ParallelCommandGroup(
+            elevator.ElevatorCommand(27),
+            arm.ArmCommand(6)
+            ).withTimeout(0.3),
+        new ParallelCommandGroup(
+            elevator.ElevatorCommand(27),
+            arm.ArmCommand(6),
+            claw.ClawCommand(-0.2)
+            )
+        );
+
     public RobotContainer() {
+        NamedCommands.registerCommand("lvl4Hold", holdLvl4Command);
+        NamedCommands.registerCommand("lvl3Hold", holdLvl3Command);
+        NamedCommands.registerCommand("lvl2Hold", holdLvl2Command);
+        NamedCommands.registerCommand("lvl1Hold", holdLvl1Command);
+
+        NamedCommands.registerCommand("scoreLvl4", scoreLvl4Command);
+        NamedCommands.registerCommand("scoreLvl3", scoreLvl3Command);
+        NamedCommands.registerCommand("scoreLvl2", scoreLvl2Command);
+        NamedCommands.registerCommand("scoreLvl1", scoreLvl1Command);
+
+        NamedCommands.registerCommand("pickup", pickupCommand);
+        NamedCommands.registerCommand("neutralArmAndElevator", 
+            new ParallelCommandGroup(
+                elevator.ElevatorCommand(5),
+                new SequentialCommandGroup(
+                    arm.ArmCommand(-2).withTimeout(1),
+                    arm.ArmCommand(0)
+                )
+            )
+        );
+        NamedCommands.registerCommand("stopClaw", claw.ClawCommand(0));
+
+
         configureBindings();
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
     private void configureBindings() {
-        elevator.setDefaultCommand(elevator.ElevatorCommand(2));
-        arm.setDefaultCommand(arm.ArmCommand(3));
+        // Default attachment Behevior
+        elevator.setDefaultCommand(elevator.ElevatorCommand(5));
+        arm.setDefaultCommand(
+            new SequentialCommandGroup(
+                arm.ArmCommand(-2).withTimeout(1),
+                arm.ArmCommand(0)
+                ));
         claw.setDefaultCommand(claw.ClawCommand(0));
         
         climb.setDefaultCommand(climb.ClimbCommand(0));
 
         led.setDefaultCommand(led.LEDCommand("red"));
 
-        joystick.x().whileTrue(climb.ClimbCommand(0.5));
-        joystick.a().whileTrue(climb.ClimbCommand(-0.5));
-
-
-        operationsController.a().negate()
-        .and(operationsController.b().negate())
-        .and(operationsController.x().negate())
-        .and(operationsController.y().negate())
-        .and(operationsController.leftTrigger().negate())
-        .and(operationsController.rightTrigger().negate()).whileTrue(
-            new ParallelCommandGroup(
-                elevator.ElevatorCommand(2),
-                arm.ArmCommand(3)));
+        joystick.x().whileTrue(climb.ClimbCommand(1));
+        joystick.y().whileTrue(climb.ClimbCommand(-1));
 
         // Lvl 1 scoring position
         operationsController.y().whileTrue(
-            new ParallelCommandGroup(
-                elevator.ElevatorCommand(30),
-                arm.ArmCommand(5)
-                )
+            holdLvl1Command
             );
 
         // Lvl 2 scoring position
         operationsController.b().and(operationsController.rightTrigger().negate()).whileTrue(
-            new ParallelCommandGroup(
-                elevator.ElevatorCommand(2),
-                arm.ArmCommand(15)
-                )
+            holdLvl2Command
             );
 
         // Lvl 3 scoring position
         operationsController.x().and(operationsController.rightTrigger().negate()).whileTrue(
-            new ParallelCommandGroup(
-                elevator.ElevatorCommand(25),
-                arm.ArmCommand(15)
-                )
+            holdLvl3Command
             );
 
         // Lvl 4 scoring position
         operationsController.a().and(operationsController.rightTrigger().negate()).whileTrue(
-            new ParallelCommandGroup(
-                elevator.ElevatorCommand(40),
-                arm.ArmCommand(18)
-                )
+            holdLvl4Command
             );
+
         // Reset Arm and Elevator position
-    operationsController.leftBumper().whileTrue(
+        operationsController.leftBumper().whileTrue(
             new ParallelCommandGroup(
                 elevator.ElevatorCommand(0),
                 arm.ArmCommand(0)
             )
         );
 
-        // Intake
-
-
         // release command
-        operationsController.rightTrigger()
-            .and(operationsController.x().negate())
-            .and(operationsController.a().negate())
-            .and(operationsController.b().negate())
-            .whileTrue(claw.ClawCommand(-0.5));
+        // operationsController.rightTrigger()
+        //     .and(operationsController.y().negate())
+        //     .and(operationsController.x().negate())
+        //     .and(operationsController.a().negate())
+        //     .and(operationsController.b().negate())
+        //     .whileTrue(claw.ClawCommand(-0.5));
 
         // Score lvl 4
         operationsController.rightTrigger()
-        .and(operationsController.a()).whileTrue(scoreLvl4Command);
-
+        .and(operationsController.a())
+        // .and(operationsController.povDown().negate())
+        .whileTrue(scoreLvl4Command);
+        // Score lvl 3
         operationsController.rightTrigger()
         .and(operationsController.x()).whileTrue(scoreLvl3Command);
+        // Score lvl 2
+        operationsController.rightTrigger()
+        .and(operationsController.b()).whileTrue(scoreLvl2Command);
+        // Score lvl 1
+        operationsController.rightTrigger()
+        .and(operationsController.y()).whileTrue(scoreLvl1Command);
 
+
+
+        /* FIELD CENTRIC DRIVE COMMANDS */
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(joystick.getLeftY() * MaxSpeed)
-                    .withVelocityY(joystick.getLeftX() * MaxSpeed)
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed)
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed)
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
-        // Field relative robot centric
-        joystick.leftTrigger().and(joystick.leftBumper().negate())
+        // Field relative half speed
+        joystick.leftTrigger().and(joystick.rightTrigger().negate())
         .whileTrue(
             drivetrain.applyRequest(
                 () ->
-                drive.withVelocityX(joystick.getLeftY() * MaxSpeed * 0.5)
-                .withVelocityY(joystick.getLeftX() * MaxSpeed * 0.5)
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * 0.5)
+                .withVelocityY(-joystick.getLeftX() * MaxSpeed * 0.5)
                 .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.5) // Drive counterclockwise with negative X (left)
             )
         );
 
-        // To barge-side pickup Position
+
+        /* ROBOT CENTRIC DRIVE COMMANDS */
+        // robot centric
+        joystick.rightTrigger().and(joystick.leftTrigger().negate()).whileTrue(
+            drivetrain.applyRequest(
+                () ->
+                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed)
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed)
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            )
+        );
+
+
+        // low speed robot centric
+        joystick.leftTrigger().and(joystick.rightTrigger()).whileTrue(
+            drivetrain.applyRequest(
+                () ->
+                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed * 0.5)
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * 0.5)
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.5) // Drive counterclockwise with negative X (left)
+            )
+        );
+
+        // Drive utils
+        joystick.a()
+        .and(joystick.rightTrigger().negate())
+        .and(joystick.leftTrigger().negate())
+        .whileTrue(drivetrain.applyRequest(() -> brake));
+
+        joystick.start().onTrue(drivetrain.resetGyro());
+
+        /* PATHPLANNER-BASED POSITIONING AND SCORING */
+
+        /* HUMAN PLAYER PICKUP POSITIONS */
+        // To left-side pickup Position
         joystick.povLeft().whileTrue(
             drivetrain.path_find_to(
                 new Pose2d(1, 7, 
@@ -219,7 +310,17 @@ public class RobotContainer {
                     edu.wpi.first.math.util.Units.degreesToRadians(-55))
                     ),
                 LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+        
+        // To right-side pickup Position
+        joystick.povRight().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(1, 1, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(55))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
 
+        /* INDIVIDUAL REEF POSITIONS */
         // DS side reef
         joystick.povDown().whileTrue(
             drivetrain.path_find_to(
@@ -229,64 +330,139 @@ public class RobotContainer {
                     ),
                 LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
         
+        // DS side left corner reef
+        joystick.povDownLeft().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(3.696, 5.362, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(-60))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+
+        // Far side left corner reef
+        joystick.povUpLeft().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(5.254, 5.362, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(-120))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
+        
         // Far side reef 
-        joystick.povDown().whileTrue(
+        joystick.povUp().whileTrue(
             drivetrain.path_find_to(
                 new Pose2d(6.06, 4.03, 
                 new Rotation2d(
                     edu.wpi.first.math.util.Units.degreesToRadians(180))
                     ),
                 LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
-        joystick.povDownLeft().whileTrue(
+
+        // Far side right corner reef
+        joystick.povUpRight().whileTrue(
             drivetrain.path_find_to(
-                new Pose2d(6.06, 4.03, 
+                new Pose2d(5.254, 2.710, 
                 new Rotation2d(
-                    edu.wpi.first.math.util.Units.degreesToRadians(-60))
+                    edu.wpi.first.math.util.Units.degreesToRadians(120))
                     ),
                 LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
 
-        // robot centric
-        joystick.leftBumper().and(joystick.leftTrigger().negate()).whileTrue(
-            drivetrain.applyRequest(
-                () ->
-                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed)
-                    .withVelocityY(joystick.getLeftX() * MaxSpeed)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
-        );
+        // Ds side right corner reef
+        joystick.povDownRight().whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(3.696, 2.710, 
+                new Rotation2d(
+                    edu.wpi.first.math.util.Units.degreesToRadians(60))
+                    ),
+                LinearVelocity.ofBaseUnits(0, MetersPerSecond)));
 
+        /* AUTONOMUS SCORING COMMANDS */
 
-        // low speed robot centric
-        joystick.leftBumper().and(joystick.leftTrigger()).whileTrue(
-            drivetrain.applyRequest(
-                () ->
-                driveRobotCentric.withVelocityX(joystick.getLeftY() * MaxSpeed * 0.5)
-                    .withVelocityY(joystick.getLeftX() * MaxSpeed * 0.5)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.5) // Drive counterclockwise with negative X (left)
-            )
-        );
+        /* Lvl 4 */
 
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        /*joystick.b().whileTrue(drivetrain.applyRequest(() ->
-        point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));*/
-
-        joystick.b().onTrue(drivetrain.resetGyro());
-
-        joystick.povUp().whileTrue(
+        // DS left side right L4
+        joystick.a()
+        .and(joystick.rightBumper())
+        .and(joystick.povDownLeft())
+        .whileTrue(
             drivetrain.path_find_to(
                 new Pose2d(
-                    4.025,
-                    4,
+                    // Field scoring coordinates
+                    3.58,
+                    5.23,
                     new Rotation2d(
-                        Units.degreesToRadians(90)
+                        // Angle in degrees
+                        edu.wpi.first.math.util.Units.degreesToRadians(
+                            -60
+                        )
                     )
                 ), 
-                LinearVelocity.ofBaseUnits(0, MetersPerSecond)
+                LinearVelocity.ofBaseUnits(
+                    // Target end speed (should be 0) 
+                    0, 
+                    MetersPerSecond
+                )
             )
         );
 
+        // DS left side left L4
+        joystick.a()
+        .and(joystick.leftBumper())
+        .and(joystick.povDownLeft())
+        .whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(
+                    // Field scoring coordinates
+                    3.87,
+                    5.44,
+                    new Rotation2d(
+                        // Angle in degrees
+                        edu.wpi.first.math.util.Units.degreesToRadians(
+                            -60
+                        )
+                    )
+                ), 
+                LinearVelocity.ofBaseUnits(
+                    // Target end speed (should be 0) 
+                    0, 
+                    MetersPerSecond
+                )
+            )
+        );
 
+        joystick.a()
+        .and(joystick.leftBumper())
+        .and(joystick.povDownLeft())
+        .whileTrue(
+            drivetrain.path_find_to(
+                new Pose2d(
+                    // Field scoring coordinates
+                    3.58,
+                    5.23,
+                    new Rotation2d(
+                        // Angle in degrees
+                        edu.wpi.first.math.util.Units.degreesToRadians(
+                            -60
+                        )
+                    )
+                ), 
+                LinearVelocity.ofBaseUnits(
+                    // Target end speed (should be 0) 
+                    0, 
+                    MetersPerSecond
+                )
+            )
+        );
+
+        // operationsController.back().whileTrue(
+        //     drivetrain.positionFromTagCommand(
+        //         new Pose2d(
+        //             0, 
+        //             0, 
+        //             new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(0))
+        //         ), 
+        //         "limelight"
+        //     )
+        //     );
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
         //joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -296,8 +472,12 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(pickupCommand, led.LEDCommand("green")));
         
+        // Autopickup
+        //new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(pickupCommand, led.LEDCommand("green")));
+        operationsController.leftBumper().whileTrue(
+            pickupCommand
+        );
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

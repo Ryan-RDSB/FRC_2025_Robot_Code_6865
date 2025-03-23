@@ -6,17 +6,26 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import com.ctre.phoenix6.hardware.TalonFX;
+
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+//import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class ClimbSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
-TalonFX climb = new TalonFX(11);
+SparkFlex climb = new SparkFlex(14, MotorType.kBrushless);
 
 
   /** Creates a new Subsystem. */
   public ClimbSubsystem() 
   {
-
+    SparkMaxConfig config4 = new SparkMaxConfig();
+    config4.idleMode(IdleMode.kBrake);
+    climb.configure(config4, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   /**
