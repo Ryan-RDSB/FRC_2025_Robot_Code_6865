@@ -73,6 +73,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static double limelightFrontAvgTagArea = 0;
     private static double limelightBackAvgTagArea = 0;
 
+
+
     private static final Field2d m_field = new Field2d();
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -80,16 +82,19 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
     
 
-    // private final PIDController xController = new PIDController(1, 0, 0);
-    // private final PIDController yController = new PIDController(1, 0, 0);
-    // private final PIDController deltaController = new PIDController(1, 0, 0);
+    double x = 0;
+    double y = 0;
+    double d = 0; 
+    private final PIDController xController = new PIDController(2, 0, 0.1);
+    private final PIDController yController = new PIDController(2, 0, 0.1);
+    private final PIDController deltaController = new PIDController(2, 0, 0.1);
     
 
-    // private double vx;
-    // private double vy;
-    // private double vd;
-    // // Apriltag Positioning request
-    // private final SwerveRequest.RobotCentric positionRequest = new SwerveRequest.RobotCentric();
+    private double vx;
+    private double vy;
+    private double vd;
+    // Apriltag Positioning request
+    private final SwerveRequest.RobotCentric positionRequest = new SwerveRequest.RobotCentric();
 
     /* Applier for Robot relative speeds for PathPlanner */
     private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
@@ -177,7 +182,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         configureAutoBuilder();
         this.getPigeon2().setYaw(0);
-        // deltaController.enableContinuousInput(-Math.PI, Math.PI);
+        deltaController.enableContinuousInput(-Math.PI, Math.PI);
     }
 
     /**
@@ -207,7 +212,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         configureAutoBuilder();
         this.getPigeon2().setYaw(0);
-        // deltaController.enableContinuousInput(-Math.PI, Math.PI);
+        deltaController.enableContinuousInput(-Math.PI, Math.PI);
   }
     
 
@@ -244,7 +249,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         configureAutoBuilder();
         this.getPigeon2().setYaw(0);
-        // deltaController.enableContinuousInput(-Math.PI, Math.PI);
+        deltaController.enableContinuousInput(-Math.PI, Math.PI);
     }
 
     /**
@@ -376,6 +381,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             );
             m_hasAppliedOperatorPerspective = true;
         });
+        
+        // SmartDashboard.putNumber("rtX: ", x);
+        // SmartDashboard.putNumber("rtY: ", y);
+        // SmartDashboard.putNumber("rtD: ", d);
         
     }
     
@@ -553,48 +562,48 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return AutoBuilder.pathfindToPose(pose, new PathConstraints(2, 1, 0.5*3.141592, 0.25*3.141592), endVelocity);
     }
  
-    // public Command positionFromTagCommand(Pose2d targetOffset, String limelight)
-    // {
-    //     double x = 0;
-    //     double y = 0;
-    //     double d = 0;
-    //     double tx = targetOffset.getX();
-    //     double ty = targetOffset.getY();
-    //     double td = targetOffset.getRotation().getRadians();
-        
-    //     LimelightResults data = LimelightHelpers.getLatestResults(limelight);
-    //     if (data.valid)
-    //     {
-    //         if (data.targets_Fiducials.length > 0) 
-    //         {
-    //             LimelightTarget_Fiducial tag = data.targets_Fiducials[0];
-    //             double id = tag.fiducialID;          // Tag ID
-    //             String family = tag.fiducialFamily;   // Tag family (e.g., "16h5")
+    public Command positionFromTagCommand(Pose2d targetOffset, String limelight)
+    {
+        return run(() ->{
 
-    //             Pose2d position = tag.getRobotPose_TargetSpace().toPose2d();
-    //             x = position.getX();
-    //             y = position.getY();
-    //             d = position.getRotation().getRadians();
-    //             vx = xController.calculate(x, tx);
-    //             vy = yController.calculate(y, ty);     
-    //             vd = deltaController.calculate(d, td);
-    //         }
-    //         else
-    //         {
-    //             vx = 0;
-    //             vy = 0;
-    //             vd = 0;
-    //             DriverStation.reportError("No vaild target for " + limelight, false);
-    //         }
-    //         }
+        double tx = targetOffset.getX();
+        double ty = targetOffset.getY();
+        double td = targetOffset.getRotation().getRadians();
+
+        Pose3d position = LimelightHelpers.getBotPose3d_TargetSpace("limelight-score");
         
+        x = position.getX();
+        y = position.getZ();
+        d = position.getRotation().getY();
+
+        vx = xController.calculate(x, tx);
+        vy = yController.calculate(y, ty);     
+        vd = deltaController.calculate(d, td);
         
-    //     return this.applyRequest(
-    //         () -> positionRequest
-    //             .withVelocityX(vy)
-    //             .withVelocityY(-vx)
-    //             .withRotationalRate(-vd)
-    //         );
-    // }
+        SmartDashboard.putNumber("VX: ", vx);
+        SmartDashboard.putNumber("VY: ", vy);
+        SmartDashboard.putNumber("VD: ", vd);
+
+        SmartDashboard.putNumber("measured rotation to target: ", d);
+
+        SmartDashboard.putNumber("tagID", LimelightHelpers.getFiducialID(limelight));
+
+        if (!(LimelightHelpers.getFiducialID(limelight) > -1))
+        {
+            vx = 0;
+            vy = 0;
+            vd = 0;
+        }
+        
+        this.setControl(
+            positionRequest
+                .withVelocityX(vy)
+                .withVelocityY(-vx)
+                .withRotationalRate(-Math.copySign(Math.min(Math.abs(vd), 2), vd))
+            );
+        }
+        );
+            
+    }
 }
 

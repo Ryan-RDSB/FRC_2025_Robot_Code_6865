@@ -77,7 +77,14 @@ public class RobotContainer {
             claw.ClawCommand(0.4)
             )
         );
-    
+    public final Command autoPickupCommand = new SequentialCommandGroup(
+        arm.ArmCommand(-4).withTimeout(0.5), 
+        new ParallelCommandGroup(arm.ArmCommand(-4), 
+            elevator.ElevatorCommand(0.1), 
+            claw.ClawCommand(0.4)
+            )
+        );
+
     // Upright positions
     public final Command holdLvl4Command = new ParallelCommandGroup(
         elevator.ElevatorCommand(40),
@@ -91,7 +98,7 @@ public class RobotContainer {
 
     public final Command holdLvl2Command = new ParallelCommandGroup(
         elevator.ElevatorCommand(3),
-        arm.ArmCommand(12)
+        arm.ArmCommand(13)
         );
 
     public final Command holdLvl1Command = new ParallelCommandGroup(
@@ -215,12 +222,12 @@ public class RobotContainer {
             );
 
         // Reset Arm and Elevator position
-        operationsController.leftBumper().whileTrue(
-            new ParallelCommandGroup(
-                elevator.ElevatorCommand(0),
-                arm.ArmCommand(0)
-            )
-        );
+        // operationsController.leftBumper().whileTrue(
+        //     new ParallelCommandGroup(
+        //         elevator.ElevatorCommand(0),
+        //         arm.ArmCommand(0)
+        //     )
+        // );
 
         // release command
         // operationsController.rightTrigger()
@@ -453,16 +460,27 @@ public class RobotContainer {
             )
         );
 
-        // operationsController.back().whileTrue(
-        //     drivetrain.positionFromTagCommand(
-        //         new Pose2d(
-        //             0, 
-        //             0, 
-        //             new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(0))
-        //         ), 
-        //         "limelight"
-        //     )
-        //     );
+        operationsController.povRight().whileTrue(
+            drivetrain.positionFromTagCommand(
+                new Pose2d(
+                    0.18, 
+                    -0.66, 
+                    new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(0))
+                ), 
+                "limelight-score"
+            )
+        );
+
+        operationsController.povLeft().whileTrue(
+            drivetrain.positionFromTagCommand(
+                new Pose2d(
+                    -0.18, 
+                    -0.66, 
+                    new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(0))
+                ), 
+                "limelight-score"
+            )
+        );
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
         //joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -474,7 +492,7 @@ public class RobotContainer {
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         
         // Autopickup
-        //new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(pickupCommand, led.LEDCommand("green")));
+        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand, led.LEDCommand("green")));
         operationsController.leftBumper().whileTrue(
             pickupCommand
         );
