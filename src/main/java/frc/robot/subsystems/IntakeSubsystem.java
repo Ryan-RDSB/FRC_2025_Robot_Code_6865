@@ -23,7 +23,7 @@ public class IntakeSubsystem extends SubsystemBase {
     lc = new LaserCan(0);
     try {
       lc.setRangingMode(LaserCan.RangingMode.SHORT);
-      lc.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+      lc.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 1000));
       lc.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
     } catch (ConfigurationFailedException e) {
       System.out.println("Configuration failed! " + e);
