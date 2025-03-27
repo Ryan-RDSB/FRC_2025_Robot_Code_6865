@@ -117,7 +117,6 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
       encoder.getPosition());
     double ffValue = feedforward.calculate(elevatorPidController.getSetpoint().velocity);
  
-    System.out.println("encoderPos: " + encoder.getPosition());
 /* 
     System.out.println("PIDvelocity: " + elevatorPidController.getSetpoint().velocity);
     System.out.println("trueVelocity: " + encoder.getVelocity());
