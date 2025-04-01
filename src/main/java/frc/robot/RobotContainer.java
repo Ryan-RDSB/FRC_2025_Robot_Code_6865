@@ -6,6 +6,8 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.sql.Driver;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -14,6 +16,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
+import edu.wpi.first.cameraserver.CameraServer;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -23,9 +26,9 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -35,7 +38,9 @@ import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
@@ -78,6 +83,7 @@ public class RobotContainer {
             claw.ClawCommand(0.4)
             )
         );
+
     public final Command autoPickupCommand = new SequentialCommandGroup(
         arm.ArmCommand(-4).withTimeout(0.5), 
         new ParallelCommandGroup(arm.ArmCommand(-4), 
@@ -156,6 +162,9 @@ public class RobotContainer {
             )
         );
 
+    public final Command climbDown = climb.ClimbCommand(1);
+    public final Command climbUp = climb.ClimbCommand(-1).withTimeout(0.5);
+
     public RobotContainer() {
         NamedCommands.registerCommand("lvl4Hold", holdLvl4Command);
         NamedCommands.registerCommand("lvl3Hold", holdLvl3Command);
@@ -166,6 +175,27 @@ public class RobotContainer {
         NamedCommands.registerCommand("scoreLvl3", scoreLvl3Command);
         NamedCommands.registerCommand("scoreLvl2", scoreLvl2Command);
         NamedCommands.registerCommand("scoreLvl1", scoreLvl1Command);
+
+        NamedCommands.registerCommand("alignRight", 
+        drivetrain.positionFromTagCommand(
+                new Pose2d(
+                    0.18, 
+                    -0.66, 
+                    new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(0))
+                ), 
+                "limelight-score"
+            ));
+
+        NamedCommands.registerCommand("alignLeft",
+        drivetrain.positionFromTagCommand(
+                new Pose2d(
+                    -0.18, 
+                    -0.66, 
+                    new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(0))
+                ), 
+                "limelight-score"
+            )
+        );
 
         NamedCommands.registerCommand("pickup", pickupCommand);
         NamedCommands.registerCommand("neutralArmAndElevator", 
@@ -183,11 +213,13 @@ public class RobotContainer {
         configureBindings();
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
+        CameraServer.startAutomaticCapture(0);
+        drivetrain.seedFieldCentric();
     }
 
     private void configureBindings() {
         // Default attachment Behevior
-        elevator.setDefaultCommand(elevator.ElevatorCommand(5));
+        elevator.setDefaultCommand(elevator.ElevatorCommand(6));
         arm.setDefaultCommand(
             new SequentialCommandGroup(
                 arm.ArmCommand(-2).withTimeout(1),
@@ -199,8 +231,11 @@ public class RobotContainer {
 
         led.setDefaultCommand(led.LEDCommand("red"));
 
-        joystick.x().whileTrue(climb.ClimbCommand(1));
-        joystick.y().whileTrue(climb.ClimbCommand(-1));
+        joystick.x().whileTrue(climbDown);
+        joystick.y().whileTrue(climbUp);
+
+        joystick.x().and(joystick.rightTrigger()).whileTrue(climb.ClimbCommand(0.5));
+        joystick.y().and(joystick.rightTrigger()).whileTrue(climb.ClimbCommand(-0.5));
 
         // Lvl 1 scoring position
         operationsController.y().whileTrue(
@@ -388,80 +423,80 @@ public class RobotContainer {
         /* Lvl 4 */
 
         // DS left side right L4
-        joystick.a()
-        .and(joystick.rightBumper())
-        .and(joystick.povDownLeft())
-        .whileTrue(
-            drivetrain.path_find_to(
-                new Pose2d(
-                    // Field scoring coordinates
-                    3.58,
-                    5.23,
-                    new Rotation2d(
-                        // Angle in degrees
-                        edu.wpi.first.math.util.Units.degreesToRadians(
-                            -60
-                        )
-                    )
-                ), 
-                LinearVelocity.ofBaseUnits(
-                    // Target end speed (should be 0) 
-                    0, 
-                    MetersPerSecond
-                )
-            )
-        );
+        // joystick.a()
+        // .and(joystick.rightBumper())
+        // .and(joystick.povDownLeft())
+        // .whileTrue(
+        //     drivetrain.path_find_to(
+        //         new Pose2d(
+        //             // Field scoring coordinates
+        //             3.58,
+        //             5.23,
+        //             new Rotation2d(
+        //                 // Angle in degrees
+        //                 edu.wpi.first.math.util.Units.degreesToRadians(
+        //                     -60
+        //                 )
+        //             )
+        //         ), 
+        //         LinearVelocity.ofBaseUnits(
+        //             // Target end speed (should be 0) 
+        //             0, 
+        //             MetersPerSecond
+        //         )
+        //     )
+        // );
 
-        // DS left side left L4
-        joystick.a()
-        .and(joystick.leftBumper())
-        .and(joystick.povDownLeft())
-        .whileTrue(
-            drivetrain.path_find_to(
-                new Pose2d(
-                    // Field scoring coordinates
-                    3.87,
-                    5.44,
-                    new Rotation2d(
-                        // Angle in degrees
-                        edu.wpi.first.math.util.Units.degreesToRadians(
-                            -60
-                        )
-                    )
-                ), 
-                LinearVelocity.ofBaseUnits(
-                    // Target end speed (should be 0) 
-                    0, 
-                    MetersPerSecond
-                )
-            )
-        );
+        // // DS left side left L4
+        // joystick.a()
+        // .and(joystick.leftBumper())
+        // .and(joystick.povDownLeft())
+        // .whileTrue(
+        //     drivetrain.path_find_to(
+        //         new Pose2d(
+        //             // Field scoring coordinates
+        //             3.87,
+        //             5.44,
+        //             new Rotation2d(
+        //                 // Angle in degrees
+        //                 edu.wpi.first.math.util.Units.degreesToRadians(
+        //                     -60
+        //                 )
+        //             )
+        //         ), 
+        //         LinearVelocity.ofBaseUnits(
+        //             // Target end speed (should be 0) 
+        //             0, 
+        //             MetersPerSecond
+        //         )
+        //     )
+        // );
 
-        joystick.a()
-        .and(joystick.leftBumper())
-        .and(joystick.povDownLeft())
-        .whileTrue(
-            drivetrain.path_find_to(
-                new Pose2d(
-                    // Field scoring coordinates
-                    3.58,
-                    5.23,
-                    new Rotation2d(
-                        // Angle in degrees
-                        edu.wpi.first.math.util.Units.degreesToRadians(
-                            -60
-                        )
-                    )
-                ), 
-                LinearVelocity.ofBaseUnits(
-                    // Target end speed (should be 0) 
-                    0, 
-                    MetersPerSecond
-                )
-            )
-        );
-
-        operationsController.povRight().whileTrue(
+        // joystick.a()
+        // .and(joystick.leftBumper())
+        // .and(joystick.povDownLeft())
+        // .whileTrue(
+        //     drivetrain.path_find_to(
+        //         new Pose2d(
+        //             // Field scoring coordinates
+        //             3.58,
+        //             5.23,
+        //             new Rotation2d(
+        //                 // Angle in degrees
+        //                 edu.wpi.first.math.util.Units.degreesToRadians(
+        //                     -60
+        //                 )
+        //             )
+        //         ), 
+        //         LinearVelocity.ofBaseUnits(
+        //             // Target end speed (should be 0) 
+        //             0, 
+        //             MetersPerSecond
+        //         )
+        //     )
+        // );
+        
+        joystick.rightBumper().whileTrue(
             drivetrain.positionFromTagCommand(
                 new Pose2d(
                     0.18, 
@@ -472,7 +507,7 @@ public class RobotContainer {
             )
         );
 
-        operationsController.povLeft().whileTrue(
+        joystick.leftBumper().whileTrue(
             drivetrain.positionFromTagCommand(
                 new Pose2d(
                     -0.18, 
@@ -493,7 +528,7 @@ public class RobotContainer {
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         
         // Autopickup
-        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand, led.LEDCommand("green")));
+        // new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand, led.LEDCommand("green")));
         operationsController.leftBumper().whileTrue(
             pickupCommand
         );
@@ -505,7 +540,60 @@ public class RobotContainer {
         // Load the path you want to follow using its name in the GUI
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
-        
+        // return new SequentialCommandGroup(
+        //     new WaitCommand(3),
+        //     new InstantCommand(() -> DriverStation.reportWarning("Starting drive to pose", false)),
+        //     drivetrain.path_find_to(
+        //         new Pose2d(6.06, 4.03, 
+        //         new Rotation2d(
+        //             edu.wpi.first.math.util.Units.degreesToRadians(180))
+        //             ),
+        //         LinearVelocity.ofBaseUnits(0, MetersPerSecond)),
+        //         new ParallelCommandGroup(
+        // elevator.ElevatorCommand(40),
+        // arm.ArmCommand(18)
+        // ).withTimeout(2),
+        //     new InstantCommand(() -> DriverStation.reportWarning("Starting auto align", false)),
+        //     new ParallelDeadlineGroup(
+        //         new WaitCommand(2),
+        //         drivetrain.positionFromTagCommand(
+        //         new Pose2d(
+        //             -0.18, 
+        //             -0.66, 
+        //             new Rotation2d(edu.wpi.first.math.util.Units.degreesToRadians(0))
+        //         ),
+
+        //         "limelight-score"
+        //     ), new ParallelCommandGroup(
+        //         elevator.ElevatorCommand(40),
+        //         arm.ArmCommand(18)
+        //         )),
+        //     new WaitCommand(1),
+        //     new InstantCommand(() -> DriverStation.reportWarning("Starting l4 scoring sequence", false)),
+        //     new ParallelDeadlineGroup(new WaitCommand(1.5),  new SequentialCommandGroup(
+        //         new ParallelCommandGroup(
+        //             arm.ArmCommand(15),
+        //             elevator.ElevatorCommand(40)
+        //             ).withTimeout(0.3), 
+        //         new ParallelCommandGroup(
+        //             arm.ArmCommand(15),
+        //             elevator.ElevatorCommand(38),
+        //             claw.ClawCommand(-0.5)
+        //             )
+        //         )),
+        //     new InstantCommand(() -> DriverStation.reportWarning("Starting backoff", false)),
+        //     drivetrain.path_find_to(
+        //         new Pose2d(6.06, 4.03, 
+        //         new Rotation2d(
+        //             edu.wpi.first.math.util.Units.degreesToRadians(180))
+        //             ),
+        //         LinearVelocity.ofBaseUnits(0, MetersPerSecond)),
+        //         new ParallelDeadlineGroup(new WaitCommand(2),  new ParallelCommandGroup(
+        //             elevator.ElevatorCommand(40),
+        //             arm.ArmCommand(18)
+        //             ))
+
+        // );
         return autoChooser.getSelected();
     } catch (Exception e) {
         DriverStation.reportError("No Auto Selected: " + e.getMessage(), e.getStackTrace());

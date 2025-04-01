@@ -370,7 +370,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     } */
     SmartDashboard.putNumber("Robot PoseX:", this.getState().Pose.getX());
     SmartDashboard.putNumber("Robot PoseY:", this.getState().Pose.getY());
-      
+    
         if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) 
         {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
@@ -504,7 +504,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         SmartDashboard.putNumberArray("Botpose", botPose);
         if (botPose.length != 0){
             if (botPose[0] == 0){
-                System.out.println("botpose invalid");
                 return null;
             }
             poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
