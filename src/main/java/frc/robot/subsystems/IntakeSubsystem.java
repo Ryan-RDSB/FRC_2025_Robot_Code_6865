@@ -11,17 +11,20 @@ import au.grapplerobotics.LaserCan;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+
 public class IntakeSubsystem extends SubsystemBase {
   
   private LaserCan lc;
-  private boolean coralIn;
-
+  public boolean coralIn;
   /** Creates a new ExampleSubsystem. */
   public IntakeSubsystem() {
     lc = new LaserCan(0);
     try {
       lc.setRangingMode(LaserCan.RangingMode.SHORT);
-      lc.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+      lc.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 160));
       lc.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
     } catch (ConfigurationFailedException e) {
       System.out.println("Configuration failed! " + e);
@@ -58,8 +61,8 @@ public class IntakeSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     int measurement = getLaserMeasurement();
-
-    if (measurement > 35 & measurement < 45)
+    
+    if (measurement > 5 & measurement < 50)
     {
       coralIn = true;
     }
@@ -69,11 +72,7 @@ public class IntakeSubsystem extends SubsystemBase {
     }
     //System.out.println("Coral In: " + coralIn);
     // This method will be called once per scheduler run
-  }
-
-  public boolean hasCoral()
-  {
-    return coralIn;
+    SmartDashboard.putNumber("LaserCAN Reading:", measurement);
   }
 
   @Override

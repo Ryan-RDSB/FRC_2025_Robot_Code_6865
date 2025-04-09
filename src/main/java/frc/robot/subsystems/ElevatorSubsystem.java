@@ -117,13 +117,12 @@ SparkClosedLoopController controller0 = motor0.getClosedLoopController();
       encoder.getPosition());
     double ffValue = feedforward.calculate(elevatorPidController.getSetpoint().velocity);
  
-    System.out.println("encoderPos: " + encoder.getPosition());
-
+/* 
     System.out.println("PIDvelocity: " + elevatorPidController.getSetpoint().velocity);
     System.out.println("trueVelocity: " + encoder.getVelocity());
     System.out.println("ff: " + ffValue);
     System.out.println("PID: " + pidValue);
-    System.out.println("volts: " + (ffValue + pidValue));
+    System.out.println("volts: " + (ffValue + pidValue));*/
     // This method will be called once per scheduler run
     motor0.setVoltage(ffValue + pidValue);
   }
