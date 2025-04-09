@@ -94,6 +94,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private double vy;
     private double vd;
     // Apriltag Positioning request
+    
     private final SwerveRequest.RobotCentric positionRequest = new SwerveRequest.RobotCentric();
 
     /* Applier for Robot relative speeds for PathPlanner */

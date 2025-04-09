@@ -66,8 +66,7 @@ public class RobotContainer {
     public final ClawSubsystem claw = new ClawSubsystem();
     public final ClimbSubsystem climb = new ClimbSubsystem();
     public final IntakeSubsystem laser = new IntakeSubsystem();
-
-    public final LEDSubsystem led = new LEDSubsystem();
+    public final LEDSubsystem led = new LEDSubsystem(laser);
 
     private final SendableChooser<Command> autoChooser;
 
