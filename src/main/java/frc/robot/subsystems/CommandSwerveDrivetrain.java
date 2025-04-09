@@ -45,8 +45,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.LimelightHelpers;
-import frc.robot.LimelightHelpers.LimelightResults;
-import frc.robot.LimelightHelpers.LimelightTarget_Fiducial;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
@@ -73,6 +71,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static double limelightFrontAvgTagArea = 0;
     private static double limelightBackAvgTagArea = 0;
 
+    public boolean onTargetLL = false;
+
 
 
     private static final Field2d m_field = new Field2d();
@@ -82,17 +82,21 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
     
 
+    // Create varibles for autoalign
     double x = 0;
     double y = 0;
     double d = 0; 
-    private final PIDController xController = new PIDController(2, 0, 0.1);
-    private final PIDController yController = new PIDController(2, 0, 0.1);
-    private final PIDController deltaController = new PIDController(2, 0, 0.1);
+
+    // PID loops for autoalign
+    private final PIDController xController = new PIDController(2.3, 0, 0.1);
+    private final PIDController yController = new PIDController(2.3, 0, 0.1);
+    private final PIDController deltaController = new PIDController(2.3, 0, 0.1);
     
 
     private double vx;
     private double vy;
     private double vd;
+
     // Apriltag Positioning request
     private final SwerveRequest.RobotCentric positionRequest = new SwerveRequest.RobotCentric();
 
@@ -183,6 +187,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
         this.getPigeon2().setYaw(0);
         deltaController.enableContinuousInput(-Math.PI, Math.PI);
+
     }
 
     /**
@@ -422,12 +427,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     private static void choose_LL(){
+        // Get limelight botpose 
         limelightFrontAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight").getEntry("botpose").getDoubleArray(new double[11])[10];
         limelightBackAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-top").getEntry("botpose").getDoubleArray(new double[11])[10];
         
         SmartDashboard.putNumber("Front Limelight Tag Area", limelightFrontAvgTagArea);
         SmartDashboard.putNumber("Top Limelight Tag Area", limelightBackAvgTagArea);    
         
+        // Check area of img for each limelight, take largest for visioning
         if(limelightFrontAvgTagArea > 
             limelightBackAvgTagArea){
                 limelightUsed = "limelight";
@@ -440,77 +447,83 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         SmartDashboard.putString("Limelight Used", limelightUsed);
     }
 
-    private LimelightHelpers.PoseEstimate get_LL_Estimate(boolean useMegaTag2){
-        doRejectUpdate = false;
-        LimelightHelpers.PoseEstimate poseEstimate = new LimelightHelpers.PoseEstimate();
+    // private LimelightHelpers.PoseEstimate get_LL_Estimate(boolean useMegaTag2){
+    //     doRejectUpdate = false;
+    //     LimelightHelpers.PoseEstimate poseEstimate = new LimelightHelpers.PoseEstimate();
 
-        if (useMegaTag2 == false) {
-            poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightUsed);
+    //     if (useMegaTag2 == false) {
+    //         poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightUsed);
 
-            if (poseEstimate == null){
-                doRejectUpdate = true;
-            }
-            else{
-                if (poseEstimate.tagCount == 1 && poseEstimate.rawFiducials.length == 1) {
-                    if (poseEstimate.rawFiducials[0].ambiguity > .7) {
-                        doRejectUpdate = true;
-                    }
-                    if (poseEstimate.rawFiducials[0].distToCamera > 3) {
-                        doRejectUpdate = true;
-                    }
-                    }
-                    if (poseEstimate.tagCount == 0) {
-                    doRejectUpdate = true;
-                    }
-            }
-        } else if (useMegaTag2 == true) {
-            LimelightHelpers.SetRobotOrientation("limelight", getState().Pose.getRotation().getDegrees(),
-            0, 0, 0, 0, 0);
-            LimelightHelpers.SetRobotOrientation("limelight-top", getState().Pose.getRotation().getDegrees(),
-            0, 0, 0, 0, 0);
-            poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
+    //         if (poseEstimate == null){
+    //             doRejectUpdate = true;
+    //         }
+    //         else{
+    //             if (poseEstimate.tagCount == 1 && poseEstimate.rawFiducials.length == 1) {
+    //                 if (poseEstimate.rawFiducials[0].ambiguity > .7) {
+    //                     doRejectUpdate = true;
+    //                 }
+    //                 if (poseEstimate.rawFiducials[0].distToCamera > 3) {
+    //                     doRejectUpdate = true;
+    //                 }
+    //                 }
+    //                 if (poseEstimate.tagCount == 0) {
+    //                 doRejectUpdate = true;
+    //                 }
+    //         }
+    //     } else if (useMegaTag2 == true) {
+    //         LimelightHelpers.SetRobotOrientation("limelight", getState().Pose.getRotation().getDegrees(),
+    //         0, 0, 0, 0, 0);
+    //         LimelightHelpers.SetRobotOrientation("limelight-top", getState().Pose.getRotation().getDegrees(),
+    //         0, 0, 0, 0, 0);
+    //         poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
 
-            if (poseEstimate == null) {
-                doRejectUpdate = true;
-            } else {
-                if (Math.abs(getPigeon2().getAngularVelocityZWorld().getValueAsDouble()) > 720) // if our angular velocity is greater than 720 degrees per second,
-                                                        // ignore vision updates. Might need to reduce to ~180
-                {
-                    doRejectUpdate = true;
-                }
-                if (poseEstimate.tagCount == 0) {
-                    doRejectUpdate = true;
-                }
-            }
-        }
+    //         if (poseEstimate == null) {
+    //             doRejectUpdate = true;
+    //         } else {
+    //             if (Math.abs(getPigeon2().getAngularVelocityZWorld().getValueAsDouble()) > 720) // if our angular velocity is greater than 720 degrees per second,
+    //                                                     // ignore vision updates. Might need to reduce to ~180
+    //             {
+    //                 doRejectUpdate = true;
+    //             }
+    //             if (poseEstimate.tagCount == 0) {
+    //                 doRejectUpdate = true;
+    //             }
+    //         }
+    //     }
 
-        if (doRejectUpdate){
-            return null;
-        }
-        else{
-            SmartDashboard.putString("LL Pose", poseEstimate.pose.toString());
-            return poseEstimate;
-        }
-    }
+    //     if (doRejectUpdate){
+    //         return null;
+    //     }
+    //     else{
+    //         SmartDashboard.putString("LL Pose", poseEstimate.pose.toString());
+    //         return poseEstimate;
+    //     }
+    // }
 
     private LimelightHelpers.PoseEstimate get_manual_LL_Estimate()
         {
-        
+        // Check for targets
         choose_LL();
+
+        // init a pose estimate to hold Limelight
         LimelightHelpers.PoseEstimate poseEstimate = new LimelightHelpers.PoseEstimate();
-        
         double[] botPose = LimelightHelpers.getBotPose(limelightUsed);
         
+        // Check for data in botpose
         SmartDashboard.putNumberArray("Botpose", botPose);
         if (botPose.length != 0){
             if (botPose[0] == 0){
                 return null;
+                // return nothing if data invalid
             }
+            // Get pose estimate if data valid
             poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
         }
 
+        // Split and display pose estimate
         Double[] pose = {poseEstimate.pose.getX(), poseEstimate.pose.getY(), poseEstimate.pose.getRotation().getRadians()};
         SmartDashboard.putNumberArray("Manual Pose", pose);
+        // return pose estimate
         return poseEstimate;
     }
 
@@ -558,27 +571,40 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public Command path_find_to(Pose2d pose, LinearVelocity endVelocity){
-        return AutoBuilder.pathfindToPose(pose, new PathConstraints(2, 1, 0.5*3.141592, 0.25*3.141592), endVelocity);
+        // Drive torward specified field-relative position with given constraints
+        return AutoBuilder.pathfindToPose(pose, 
+        new PathConstraints(
+            2, 
+            1,
+            // angular speeds and acceleration parameters
+            0.5*3.141592, 
+            0.25*3.141592), 
+            endVelocity);
     }
- 
+
     public Command positionFromTagCommand(Pose2d targetOffset, String limelight)
     {
         return run(() ->{
 
+        // Get values of target position
         double tx = targetOffset.getX();
         double ty = targetOffset.getY();
         double td = targetOffset.getRotation().getRadians();
 
-        Pose3d position = LimelightHelpers.getBotPose3d_TargetSpace("limelight-score");
+        // Retrive limelight data
+        Pose3d position = LimelightHelpers.getBotPose3d_TargetSpace(limelight);
         
+        // Get values from Limelight
         x = position.getX();
         y = position.getZ();
         d = position.getRotation().getY();
 
+        // Calulate velocities with PID
         vx = xController.calculate(x, tx);
         vy = yController.calculate(y, ty);     
         vd = deltaController.calculate(d, td);
         
+        // Push numbers to smartDasboard
         SmartDashboard.putNumber("VX: ", vx);
         SmartDashboard.putNumber("VY: ", vy);
         SmartDashboard.putNumber("VD: ", vd);
@@ -587,13 +613,25 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         SmartDashboard.putNumber("tagID", LimelightHelpers.getFiducialID(limelight));
 
+        // Check to see if:
+        // 1: not seeing Apriltag or disconnected limelight 
+        // (as all values from invalid tags are either -1 or null)
         if (!(LimelightHelpers.getFiducialID(limelight) > -1))
         {
             vx = 0;
             vy = 0;
             vd = 0;
         }
+        // 2: if on target
+        else if (Math.abs(vx) < 0.04 && Math.abs(vy) < 0.04 && Math.abs(vd) < 0.1) {
+            onTargetLL = true;
+        }
+        else
+        {
+            onTargetLL = false;
+        }
         
+        // Run swerve with calculated velocities
         this.setControl(
             positionRequest
                 .withVelocityX(vy)
@@ -601,7 +639,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 .withRotationalRate(-Math.copySign(Math.min(Math.abs(vd), 2), vd))
             );
         }
-        );
+        )
+        // Turn off onTarget flag when finished with autotargeting
+        .finallyDo(() -> onTargetLL = false);
             
     }
 }

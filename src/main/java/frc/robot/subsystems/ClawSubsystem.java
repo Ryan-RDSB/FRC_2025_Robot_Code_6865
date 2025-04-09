@@ -9,7 +9,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
-
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
@@ -27,7 +27,7 @@ SparkMax motor3 = new SparkMax(13, MotorType.kBrushless);
     
     SparkMaxConfig config3 = new SparkMaxConfig();
     config3
-    .inverted(false);
+    .inverted(true).idleMode(IdleMode.kBrake);
 
     // Apply configs - reset old parameters, and persist through power-cycles. 
     motor3.configure(config3, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
