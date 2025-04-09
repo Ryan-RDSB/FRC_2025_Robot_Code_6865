@@ -273,18 +273,18 @@ public class RobotContainer {
 
         joystick.b().onTrue(drivetrain.resetGyro());
 
-        joystick.povUp().whileTrue(
-            drivetrain.path_find_to(
-                new Pose2d(
-                    4.025,
-                    4,
-                    new Rotation2d(
-                        Units.degreesToRadians(90)
-                    )
-                ), 
-                LinearVelocity.ofBaseUnits(0, MetersPerSecond)
-            )
-        );
+        // joystick.povUp().whileTrue(
+        //     drivetrain.path_find_to(
+        //         new Pose2d(
+        //             4.025,
+        //             4,
+        //             new Rotation2d(
+        //                 //Units.degreesToRadians(90)
+        //             )
+        //         ), 
+        //         LinearVelocity.ofBaseUnits(0, MetersPerSecond)
+        //     )
+        // );
 
 
         // Run SysId routines when holding back/start and X/Y.
