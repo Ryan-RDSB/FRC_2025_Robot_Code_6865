@@ -494,7 +494,7 @@ public class RobotContainer {
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         
         // Autopickup
-        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand.withTimeout(2), led.LEDCommand("green").withTimeout(2).andThen(led.LEDCommand("blue"))));
+        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand.withTimeout(1), led.LEDCommand("green").withTimeout(2).andThen(led.LEDCommand("singlefade_yellow"))));
         operationsController.leftBumper().whileTrue(
             pickupCommand
         );
