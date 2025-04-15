@@ -36,6 +36,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
@@ -66,7 +67,6 @@ public class RobotContainer {
     public final ClawSubsystem claw = new ClawSubsystem();
     public final ClimbSubsystem climb = new ClimbSubsystem();
     public final IntakeSubsystem laser = new IntakeSubsystem();
-    public final LEDSubsystem candle = new LEDSubsystem();
 
     public final LEDSubsystem led = new LEDSubsystem();
 
@@ -198,7 +198,7 @@ public class RobotContainer {
         
         climb.setDefaultCommand(climb.ClimbCommand(0));
 
-        led.setDefaultCommand(led.LEDCommand("red"));
+        led.setDefaultCommand(led.LEDCommand("singlefade_yellow"));
 
         joystick.x().whileTrue(climb.ClimbCommand(1));
         joystick.y().whileTrue(climb.ClimbCommand(-1));
@@ -494,7 +494,7 @@ public class RobotContainer {
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         
         // Autopickup
-        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand, led.LEDCommand("green")));
+        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand.withTimeout(2), led.LEDCommand("green").withTimeout(2).andThen(led.LEDCommand("blue"))));
         operationsController.leftBumper().whileTrue(
             pickupCommand
         );
