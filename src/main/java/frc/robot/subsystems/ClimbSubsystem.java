@@ -17,15 +17,25 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class ClimbSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
-SparkFlex climb = new SparkFlex(14, MotorType.kBrushless);
+SparkFlex climb1 = new SparkFlex(14, MotorType.kBrushless);
+SparkFlex climb2 = new SparkFlex(15, MotorType.kBrushless);
 
 
   /** Creates a new Subsystem. */
   public ClimbSubsystem() 
   {
     SparkMaxConfig config4 = new SparkMaxConfig();
+    SparkMaxConfig config5 = new SparkMaxConfig();
+
     config4.idleMode(IdleMode.kBrake);
-    climb.configure(config4, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    config5.idleMode(IdleMode.kBrake);
+
+    config5.follow(14, true);
+
+    climb1.configure(config4, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    climb2.configure(config5, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+
   }
 
   /**
@@ -44,7 +54,7 @@ SparkFlex climb = new SparkFlex(14, MotorType.kBrushless);
 
   public void runClimber(double speed)
   {
-    climb.set(speed);
+    climb1.set(speed);
   }
 
   /**
