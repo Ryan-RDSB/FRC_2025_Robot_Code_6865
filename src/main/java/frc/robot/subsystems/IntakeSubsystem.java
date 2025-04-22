@@ -61,7 +61,7 @@ public class IntakeSubsystem extends SubsystemBase {
   public void periodic() {
     int measurement = getLaserMeasurement();
     
-    if (measurement > 30 & measurement < 50)
+    if (measurement < 110 && measurement > 0)
     {
       coralIn = true;
     }

@@ -6,16 +6,35 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import com.ctre.phoenix6.hardware.TalonFX;
+
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+//import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class ClimbSubsystem extends SubsystemBase {
   // Initialize the motor (Flex/MAX are setup the same way)
-TalonFX climb = new TalonFX(11);
+SparkFlex climb1 = new SparkFlex(14, MotorType.kBrushless);
+SparkFlex climb2 = new SparkFlex(15, MotorType.kBrushless);
 
 
   /** Creates a new Subsystem. */
   public ClimbSubsystem() 
   {
+    SparkMaxConfig config4 = new SparkMaxConfig();
+    SparkMaxConfig config5 = new SparkMaxConfig();
+
+    config4.idleMode(IdleMode.kBrake);
+    config5.idleMode(IdleMode.kBrake);
+
+    config5.follow(14, true);
+
+    climb1.configure(config4, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    climb2.configure(config5, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
 
   }
 
@@ -35,7 +54,7 @@ TalonFX climb = new TalonFX(11);
 
   public void runClimber(double speed)
   {
-    climb.set(speed);
+    climb1.set(speed);
   }
 
   /**
