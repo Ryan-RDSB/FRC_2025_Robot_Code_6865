@@ -76,14 +76,14 @@ public class RobotContainer {
         arm.ArmCommand(-4).withTimeout(0.5), 
         new ParallelCommandGroup(arm.ArmCommand(-4), 
             elevator.ElevatorCommand(0.1), 
-            claw.ClawCommand(0.4)
+            claw.ClawCommand(-0.4)
             )
         );
     public final Command autoPickupCommand = new SequentialCommandGroup(
         arm.ArmCommand(-4).withTimeout(0.5), 
         new ParallelCommandGroup(arm.ArmCommand(-4), 
             elevator.ElevatorCommand(0.1), 
-            claw.ClawCommand(0.4)
+            claw.ClawCommand(-0.4)
             )
         );
 
@@ -198,7 +198,7 @@ public class RobotContainer {
         
         climb.setDefaultCommand(climb.ClimbCommand(0));
 
-        led.setDefaultCommand(led.LEDCommand("singlefade_yellow"));
+        led.setDefaultCommand(led.LEDCommand("fire"));
 
         joystick.x().whileTrue(climb.ClimbCommand(1));
         joystick.y().whileTrue(climb.ClimbCommand(-1));

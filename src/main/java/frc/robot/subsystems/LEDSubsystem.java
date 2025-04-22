@@ -158,49 +158,57 @@ public class LEDSubsystem extends SubsystemBase {
     public void COLORFLOW()
     {
       SmartDashboard.putString("Candle Colour: ", "colorflow");
-      new ColorFlowAnimation(128, 20, 70, 0, 0.7, LedCount, Direction.Forward);
+      Animation ColorFlowAnimation = new ColorFlowAnimation(128, 20, 70, 0, 0.7, LedCount, Direction.Forward);
+      candle.animate(ColorFlowAnimation);
     }
 
     public void FIRE()
     {
       SmartDashboard.putString("Candle Colour: ", "fire");
-      new FireAnimation(0.5, 0.7, LedCount, 0.7, 0.5);
+      Animation FireAnimation = new FireAnimation(0.5, 0.7, LedCount, 0.7, 0.5);
+      candle.animate(FireAnimation);
     }
 
     public void RAINDOW()
     {
       SmartDashboard.putString("Candle Colour: ", "rainbow");
-      new RainbowAnimation(1, 0.1, LedCount);
+      Animation RainbowAnimation = new RainbowAnimation(1, 0.1, LedCount);
+      candle.animate(RainbowAnimation);
     }
 
     public void RGBFADE()
     {
       SmartDashboard.putString("Candle Colour: ", "rgbfade");
-      new RgbFadeAnimation(0.7, 0.4, LedCount);          
+      Animation RGBAnimation = new RgbFadeAnimation(0.7, 0.4, LedCount);
+      candle.animate(RGBAnimation);
     }
     
     public void SINGLEFADE_YELLOW()
     {
       SmartDashboard.putString("Candle Colour: ", "singlefade_yellow");
-      new SingleFadeAnimation(255, 255, 0, 0, 0.5, LedCount);
+      Animation SingleFadeAnimation = new SingleFadeAnimation(255, 150, 0, 0, 0.5, LedCount);
+      candle.animate(SingleFadeAnimation);
     }
     
     public void STROBE()
     {
       SmartDashboard.putString("Candle Colour: ", "strobe");
-      new StrobeAnimation(240, 10, 180, 0, 98.0 / 256.0, LedCount);
+      Animation StrobeAnimation = new StrobeAnimation(240, 10, 180, 0, 98.0 / 256.0, LedCount);
+      candle.animate(StrobeAnimation);
     }
     
     public void TWINKLE()
     {
       SmartDashboard.putString("Candle Colour/Effect: ", "twinkle");
-      new TwinkleAnimation(30, 70, 60, 0, 0.4, LedCount, TwinklePercent.Percent6);
+      Animation TwinkleAnimation = new TwinkleAnimation(30, 70, 60, 0, 0.4, LedCount, TwinklePercent.Percent6);
+      candle.animate(TwinkleAnimation);
     }
 
     public void TWINKLEOFF()
     {
       SmartDashboard.putString("Candle Colour: ", "twinkleoff");
-      new TwinkleOffAnimation(70, 90, 175, 0, 0.8, LedCount, TwinkleOffPercent.Percent100);
+      Animation TwinkleOffAnimation = new TwinkleOffAnimation(70, 90, 175, 0, 0.8, LedCount, TwinkleOffPercent.Percent100);
+      candle.animate(TwinkleOffAnimation);
     }
             
   public CANdle getCaNdle()
