@@ -326,7 +326,7 @@ public class RobotContainer {
         
         climb.setDefaultCommand(climb.ClimbCommand(0));
 
-        led.setDefaultCommand(led.LEDCommand("red"));
+        led.setDefaultCommand(led.LEDCommand("rainbow"));
 
         joystick.x().whileTrue(climbDown);
         joystick.y().whileTrue(climbUp);
