@@ -198,7 +198,7 @@ public class RobotContainer {
         
         climb.setDefaultCommand(climb.ClimbCommand(0));
 
-        led.setDefaultCommand(led.LEDCommand("fire"));
+        led.setDefaultCommand(led.LEDCommand("rainbow"));
 
         joystick.x().whileTrue(climb.ClimbCommand(1));
         joystick.y().whileTrue(climb.ClimbCommand(-1));
@@ -494,7 +494,7 @@ public class RobotContainer {
         //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         
         // Autopickup
-        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand.withTimeout(2), led.LEDCommand("green").withTimeout(2).andThen(led.LEDCommand("blue"))));
+        new Trigger(() -> laser.coralIn).whileTrue(new ParallelCommandGroup(autoPickupCommand.withTimeout(2), led.LEDCommand("green").withTimeout(2).andThen(led.LEDCommand("rainbow"))));
         operationsController.leftBumper().whileTrue(
             pickupCommand
         );
